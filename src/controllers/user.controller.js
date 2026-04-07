@@ -1,5 +1,5 @@
 import User from '../models/User.js';
-import { encrypt } from '../utils/handlePassword.js';
+import { encrypt, compare } from '../utils/handlePassword.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/handleJwt.js';
 import { handleHttpError } from '../utils/handleError.js';
 
@@ -87,5 +87,40 @@ export const validateEmailCtrl = async (req, res) => {
     } catch (error) {
         console.error(error);
         handleHttpError(res, 'ERROR_VALIDACION_EMAIL');
+    }
+};
+
+export const loginCtrl = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const user = await User.findOne({ email }).select('+password');
+
+        if (!user) {
+            return handleHttpError(res, 'CREDENCIALES_INCORRECTAS', 401);
+        }
+
+        const passwordMatch = await compare(password, user.password);
+        if (!passwordMatch) {
+            return handleHttpError(res, 'CREDENCIALES_INCORRECTAS', 401);
+        }
+
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken();
+
+        res.json({
+            token: accessToken,
+            refreshToken,
+            user: {
+                _id: user._id,
+                email: user.email,
+                status: user.status,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_LOGIN');
     }
 };
