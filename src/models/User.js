@@ -46,6 +46,10 @@ const userSchema = new mongoose.Schema(
       select: false,
       default: 3,
     },
+    refreshToken: {
+      type: String,
+      select: false,
+    },
     company: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Company",

@@ -42,6 +42,9 @@ export const registerCtrl = async (req, res) => {
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken();
 
+        // Guardamos el refresh token en BD para poder validarlo después (endpoint 7)
+        await User.findByIdAndUpdate(user._id, { refreshToken });
+
         res.status(201).json({
             token: accessToken,
             refreshToken,
@@ -109,6 +112,9 @@ export const loginCtrl = async (req, res) => {
 
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken();
+
+        // Guardamos el refresh token en BD
+        await User.findByIdAndUpdate(user._id, { refreshToken });
 
         res.json({
             token: accessToken,
@@ -232,6 +238,49 @@ export const uploadLogoCtrl = async (req, res) => {
     } catch (error) {
         console.error(error);
         handleHttpError(res, 'ERROR_SUBIR_LOGO');
+    }
+};
+
+// Endpoint 7a: Refresh token (POST /api/user/refresh)
+export const refreshCtrl = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        // Buscamos el usuario que tenga ese refresh token almacenado
+        const user = await User.findOne({ refreshToken }).select('+refreshToken');
+
+        if (!user) {
+            return handleHttpError(res, 'REFRESH_TOKEN_NO_VALIDO', 401);
+        }
+
+        // Generamos un nuevo access token y rotamos el refresh token
+        const newAccessToken = generateAccessToken(user);
+        const newRefreshToken = generateRefreshToken();
+
+        await User.findByIdAndUpdate(user._id, { refreshToken: newRefreshToken });
+
+        res.json({
+            token: newAccessToken,
+            refreshToken: newRefreshToken,
+        });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_REFRESH_TOKEN');
+    }
+};
+
+// Endpoint 7b: Logout (POST /api/user/logout)
+export const logoutCtrl = async (req, res) => {
+    try {
+        // Eliminamos el refresh token del usuario para invalidar la sesión
+        await User.findByIdAndUpdate(req.user._id, { refreshToken: null });
+
+        res.json({ mensaje: 'Sesión cerrada correctamente' });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_LOGOUT');
     }
 };
 

@@ -7,6 +7,8 @@ import {
     updateCompanyCtrl,
     uploadLogoCtrl,
     getUserCtrl,
+    refreshCtrl,
+    logoutCtrl,
 } from '../controllers/user.controller.js';
 import validate from '../middleware/validate.js';
 import {
@@ -14,6 +16,7 @@ import {
     validationCodeValidator,
     personalDataValidator,
     companyDataValidator,
+    refreshTokenValidator,
 } from '../validators/user.validator.js';
 import authMiddleware from '../middleware/auth.js';
 import upload from '../middleware/upload.js';
@@ -34,5 +37,9 @@ router.patch('/company', authMiddleware, validate(companyDataValidator), updateC
 router.patch('/logo', authMiddleware, upload.single('logo'), uploadLogoCtrl);
 // Endpoint 6: Obtener usuario
 router.get('/', authMiddleware, getUserCtrl);
+// Endpoint 7a: Refresh token
+router.post('/refresh', validate(refreshTokenValidator), refreshCtrl);
+// Endpoint 7b: Logout
+router.post('/logout', authMiddleware, logoutCtrl);
 
 export default router;
