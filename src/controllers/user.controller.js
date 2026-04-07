@@ -1,3 +1,4 @@
+import path from 'path';
 import User from '../models/User.js';
 import Company from '../models/Company.js';
 import { encrypt, compare } from '../utils/handlePassword.js';
@@ -202,5 +203,51 @@ export const updateCompanyCtrl = async (req, res) => {
     } catch (error) {
         console.error(error);
         handleHttpError(res, 'ERROR_ACTUALIZAR_EMPRESA');
+    }
+};
+
+// Endpoint 5: Logo de la compañía (PATCH /api/user/logo)
+export const uploadLogoCtrl = async (req, res) => {
+    try {
+        const user = req.user;
+
+        if (!user.company) {
+            return handleHttpError(res, 'USUARIO_SIN_EMPRESA', 400);
+        }
+
+        if (!req.file) {
+            return handleHttpError(res, 'NO_SE_HA_ENVIADO_IMAGEN', 400);
+        }
+
+        const logoUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
+        const company = await Company.findByIdAndUpdate(
+            user.company,
+            { logo: logoUrl },
+            { new: true }
+        );
+
+        res.json({ company });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_SUBIR_LOGO');
+    }
+};
+
+// Endpoint 6: Obtener usuario (GET /api/user)
+export const getUserCtrl = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).populate('company');
+
+        if (!user) {
+            return handleHttpError(res, 'USUARIO_NO_ENCONTRADO', 404);
+        }
+
+        res.json({ user });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_OBTENER_USUARIO');
     }
 };

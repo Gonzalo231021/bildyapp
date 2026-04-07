@@ -5,6 +5,8 @@ import {
     loginCtrl,
     updatePersonalDataCtrl,
     updateCompanyCtrl,
+    uploadLogoCtrl,
+    getUserCtrl,
 } from '../controllers/user.controller.js';
 import validate from '../middleware/validate.js';
 import {
@@ -14,6 +16,7 @@ import {
     companyDataValidator,
 } from '../validators/user.validator.js';
 import authMiddleware from '../middleware/auth.js';
+import upload from '../middleware/upload.js';
 
 const router = Router();
 
@@ -27,5 +30,9 @@ router.post('/login', validate(registerValidator), loginCtrl);
 router.put('/register', authMiddleware, validate(personalDataValidator), updatePersonalDataCtrl);
 // Endpoint 4b: Onboarding — datos de compañía
 router.patch('/company', authMiddleware, validate(companyDataValidator), updateCompanyCtrl);
+// Endpoint 5: Logo de la compañía
+router.patch('/logo', authMiddleware, upload.single('logo'), uploadLogoCtrl);
+// Endpoint 6: Obtener usuario
+router.get('/', authMiddleware, getUserCtrl);
 
 export default router;
