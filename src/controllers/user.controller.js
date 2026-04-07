@@ -44,6 +44,8 @@ export const registerCtrl = async (req, res) => {
 
         await User.findByIdAndUpdate(user._id, { refreshToken });
 
+        notificationService.emit('user:registered', { email: user.email });
+
         res.status(201).json({
             token: accessToken,
             refreshToken,
@@ -85,6 +87,8 @@ export const validateEmailCtrl = async (req, res) => {
             verificationCode: null,
             verificationAttempts: 0
         });
+
+        notificationService.emit('user:verified', { email: user.email });
 
         res.json({ mensaje: 'Email verificado correctamente' });
 
