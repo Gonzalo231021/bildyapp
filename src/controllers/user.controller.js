@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import Company from '../models/Company.js';
 import { encrypt, compare } from '../utils/handlePassword.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/handleJwt.js';
 import { handleHttpError } from '../utils/handleError.js';
@@ -122,5 +123,84 @@ export const loginCtrl = async (req, res) => {
     } catch (error) {
         console.error(error);
         handleHttpError(res, 'ERROR_LOGIN');
+    }
+};
+
+// Endpoint 4a: Onboarding — datos personales (PUT /api/user/register)
+export const updatePersonalDataCtrl = async (req, res) => {
+    try {
+        const { name, lastName, nif, address } = req.body;
+        const userId = req.user._id;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { name, lastName, nif, ...(address && { address }) },
+            { new: true, runValidators: true }
+        );
+
+        res.json({ user: updatedUser });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_ACTUALIZAR_DATOS_PERSONALES');
+    }
+};
+
+// Endpoint 4b: Onboarding — datos de compañía (PATCH /api/user/company)
+export const updateCompanyCtrl = async (req, res) => {
+    try {
+        const { isFreelance, name, cif, address } = req.body;
+        const user = req.user;
+
+        // Datos que se usarán para la compañía
+        let companyName, companyCif, companyAddress;
+
+        if (isFreelance) {
+            // El autónomo usa sus datos personales como empresa
+            if (!user.nif) {
+                return handleHttpError(res, 'COMPLETA_DATOS_PERSONALES_ANTES', 400);
+            }
+            companyName    = user.fullName || user.name;
+            companyCif     = user.nif;
+            companyAddress = user.address;
+        } else {
+            companyName    = name;
+            companyCif     = cif;
+            companyAddress = address;
+        }
+
+        // ¿Ya existe una empresa con ese CIF?
+        const existingCompany = await Company.findOne({ cif: companyCif });
+
+        let company;
+        let newRole = user.role; // por defecto no cambia
+
+        if (existingCompany) {
+            // El usuario se une a la empresa existente como guest
+            company = existingCompany;
+            newRole = 'guest';
+        } else {
+            // Creamos la empresa nueva con el usuario como owner
+            company = await Company.create({
+                owner:      user._id,
+                name:       companyName,
+                cif:        companyCif,
+                address:    companyAddress,
+                isFreelance: isFreelance ?? false,
+            });
+        }
+
+        // Asignamos la empresa y el rol al usuario
+        const updatedUser = await User.findByIdAndUpdate(
+            user._id,
+            { company: company._id, role: newRole },
+            { new: true }
+        ).populate('company');
+
+        res.json({ user: updatedUser });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_ACTUALIZAR_EMPRESA');
     }
 };

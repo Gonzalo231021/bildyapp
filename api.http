@@ -1,6 +1,100 @@
 ### Prueba servidor
 GET http://localhost:3000/pruebaDB
 
+
+
+########################################################################
+###  FLUJO COMPLETO — gonzaloPrueba@bildyapp.com (endpoints 1 → 4)
+###
+###  PASO 1 → Ejecuta "FLUJO | 1. Registro"
+###  PASO 2 → Copia el token de la respuesta → pégalo en @token_prueba
+###  PASO 3 → Abre MongoDB Atlas, busca el usuario gonzaloPrueba@bildyapp.com
+###            y copia el campo verificationCode en @code_prueba
+
+###  PASO 4 → Ejecuta "FLUJO | 2. Validación email"
+###  PASO 5 → Ejecuta "FLUJO | 3. Login" y actualiza @token_prueba con el nuevo token
+###  PASO 6 → Ejecuta "FLUJO | 4a. Datos personales"
+###  PASO 7 → Ejecuta "FLUJO | 4b. Empresa nueva"  (queda como admin)
+###        ó  Ejecuta "FLUJO | 4b. Autónomo"        (usa sus datos personales)
+########################################################################
+
+@token_prueba = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWQ1NmM5ODA5OWY0YmYyNDQwZGNlMzciLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzU1OTQ4NDAsImV4cCI6MTc3NTU5NTc0MH0.K_R1MsPdZxJD9L2cGMkPcBtdlu64lQTe3eao2EKYlac
+@code_prueba  = 326852
+
+### FLUJO | 1. Registro
+POST http://localhost:3000/api/user/register
+Content-Type: application/json
+
+{
+    "email": "gonzaloPrueba@bildyapp.com",
+    "password": "GonzaloPass1"
+}
+
+### FLUJO | 2. Validación email
+PUT http://localhost:3000/api/user/validation
+Content-Type: application/json
+Authorization: Bearer {{token_prueba}}
+
+{
+    "code": "{{code_prueba}}"
+}
+
+### FLUJO | 3. Login  (actualiza @token_prueba con el token de esta respuesta)
+POST http://localhost:3000/api/user/login
+Content-Type: application/json
+
+{
+    "email": "gonzaloPrueba@bildyapp.com",
+    "password": "GonzaloPass1"
+}
+
+### FLUJO | 4a. Datos personales
+PUT http://localhost:3000/api/user/register
+Content-Type: application/json
+Authorization: Bearer {{token_prueba}}
+
+{
+    "name": "Gonzalo",
+    "lastName": "Fernandez Prueba",
+    "nif": "87654321A",
+    "address": {
+        "street": "Calle Serrano",
+        "number": "42",
+        "postal": "28001",
+        "city": "Madrid",
+        "province": "Madrid"
+    }
+}
+
+### FLUJO | 4b. Empresa nueva  (CIF nuevo → queda como admin)
+PATCH http://localhost:3000/api/user/company
+Content-Type: application/json
+Authorization: Bearer {{token_prueba}}
+
+{
+    "isFreelance": false,
+    "name": "GonzaloPrueba Obras S.L.",
+    "cif": "A87654321",
+    "address": {
+        "street": "Calle Serrano",
+        "number": "42",
+        "postal": "28001",
+        "city": "Madrid",
+        "province": "Madrid"
+    }
+}
+
+### FLUJO | 4b. Autónoma  (usa nif y datos personales de ana como empresa)
+PATCH http://localhost:3000/api/user/company
+Content-Type: application/json
+Authorization: Bearer {{token_prueba}}
+
+{
+    "isFreelance": true
+}
+
+########################################################################
+
 ### Registro de usuario (plantilla)
 POST http://localhost:3000/api/user/register
 Content-Type: application/json
@@ -70,12 +164,83 @@ Content-Type: application/json
     "password": "ContraseñaEj0"
 }
 
-### Login 
+### Login
 POST http://localhost:3000/api/user/login
 Content-Type: application/json
 
 {
     "email": "gonzalo@bildyapp.com",
     "password": "Gonzalo0"
+}
+
+
+
+### Onboarding — Datos personales (plantilla)
+PUT http://localhost:3000/api/user/register
+Content-Type: application/json
+Authorization: Bearer <TOKEN_ACCESO>
+
+{
+    "name": "Nombre",
+    "lastName": "Apellido Apellido",
+    "nif": "12345678A",
+    "address": {
+        "street": "Calle Mayor",
+        "number": "1",
+        "postal": "28001",
+        "city": "Madrid",
+        "province": "Madrid"
+    }
+}
+
+### Onboarding — Datos personales (caso concreto, gonzalo@bildyapp.com)
+PUT http://localhost:3000/api/user/register
+Content-Type: application/json
+Authorization: Bearer <TOKEN_ACCESO>
+
+{
+    "name": "Gonzalo",
+    "lastName": "Martinez Fernandez",
+    "nif": "12345678G"
+}
+
+
+
+### Onboarding — Empresa nueva (el CIF no existe aún, queda como admin)
+PATCH http://localhost:3000/api/user/company
+Content-Type: application/json
+Authorization: Bearer <TOKEN_ACCESO>
+
+{
+    "isFreelance": false,
+    "name": "BildyApp S.L.",
+    "cif": "B12345678",
+    "address": {
+        "street": "Calle Gran Via",
+        "number": "10",
+        "postal": "28013",
+        "city": "Madrid",
+        "province": "Madrid"
+    }
+}
+
+### Onboarding — Unirse a empresa existente (el CIF ya existe, pasa a guest)
+PATCH http://localhost:3000/api/user/company
+Content-Type: application/json
+Authorization: Bearer <TOKEN_ACCESO>
+
+{
+    "isFreelance": false,
+    "name": "BildyApp S.L.",
+    "cif": "B12345678"
+}
+
+### Onboarding — Autónomo (usa su NIF y datos personales como empresa)
+PATCH http://localhost:3000/api/user/company
+Content-Type: application/json
+Authorization: Bearer <TOKEN_ACCESO>
+
+{
+    "isFreelance": true
 }
 
