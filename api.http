@@ -1,14 +1,25 @@
 ### Prueba servidor
 GET http://localhost:3000/pruebaDB
 
-### Registro de usuario
+### Registro de usuario (plantilla)
 POST http://localhost:3000/api/user/register
 Content-Type: application/json
 
 {
-    "email": "gonzalo@test.com",
-    "password": "Prueba01"
+    "email": "ejemplo_correo@bildyapp.com",
+    "password": "ContraseñaEj0"
 }
+
+### Registro de usuario (Caso concreto, funcional)
+POST http://localhost:3000/api/user/register
+Content-Type: application/json
+
+{
+    "email": "gonzalo@bildyapp.com",
+    "password": "Gonzalo0"
+}
+
+
 ### Registro de usuario cambiando la contraseña, mensaje de email ya registrado
 POST http://localhost:3000/api/user/register
 Content-Type: application/json
@@ -25,4 +36,25 @@ Content-Type: application/json
 {
     "email": "gonzalo1@test.com",
     "password": "sinmayusculas0"
+}
+
+
+
+
+### Validación de email (hay que escribir el token y el codigo de MongoDB)
+PUT  http://localhost:3000/api/user/validation
+Content-Type: application/json
+Authorization: Bearer <TOKEN_ACCESO>
+
+{
+    "code": "RELLENAR_CODIGO_VERIFICACION"
+}
+
+### Validación de email (CASO CONCRETO, gonzalo@bildyapp.com, hay que escribir el token y el codigo de MongoDB)
+PUT  http://localhost:3000/api/user/validation
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWQ0ODc1N2JmZWQwMTEwMThmNThlNDIiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzU1MzY5ODQsImV4cCI6MTc3NTUzNzg4NH0.LcEKNrUNDsDwg2MEfYP78qvQwGDF60jAMDZ7dm5JXWs
+
+{
+    "code": "845432"
 }

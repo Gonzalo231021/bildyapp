@@ -13,3 +13,10 @@ export const registerValidator = z.object ({
         .regex(/[0-9]/, 'La contraseña debe contener al menos un número'),
     })
 });
+
+export const validationCodeValidator = z.object({
+    body: z.object({
+        code: z.string().length(6, 'El código de verificación debe tener 6 dígitos')
+    })
+});
+
