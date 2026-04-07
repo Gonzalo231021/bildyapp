@@ -9,6 +9,9 @@ import {
     getUserCtrl,
     refreshCtrl,
     logoutCtrl,
+    deleteUserCtrl,
+    changePasswordCtrl,
+    inviteUserCtrl,
 } from '../controllers/user.controller.js';
 import validate from '../middleware/validate.js';
 import {
@@ -17,8 +20,11 @@ import {
     personalDataValidator,
     companyDataValidator,
     refreshTokenValidator,
+    changePasswordValidator,
+    inviteValidator,
 } from '../validators/user.validator.js';
 import authMiddleware from '../middleware/auth.js';
+import checkRole from '../middleware/role.js';
 import upload from '../middleware/upload.js';
 
 const router = Router();
@@ -41,5 +47,11 @@ router.get('/', authMiddleware, getUserCtrl);
 router.post('/refresh', validate(refreshTokenValidator), refreshCtrl);
 // Endpoint 7b: Logout
 router.post('/logout', authMiddleware, logoutCtrl);
+// Endpoint 8: Eliminar usuario
+router.delete('/', authMiddleware, deleteUserCtrl);
+// Endpoint 9: Cambiar contraseña
+router.put('/password', authMiddleware, validate(changePasswordValidator), changePasswordCtrl);
+// Endpoint 10: Invitar compañero
+router.post('/invite', authMiddleware, checkRole('admin'), validate(inviteValidator), inviteUserCtrl);
 
 export default router;

@@ -1,9 +1,10 @@
 import path from 'path';
 import User from '../models/User.js';
-import Company from '../models/Company.js';
+import  Company from '../models/Company.js';
 import { encrypt, compare } from '../utils/handlePassword.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/handleJwt.js';
 import { handleHttpError } from '../utils/handleError.js';
+import notificationService from '../services/notification.service.js';
 
 export const registerCtrl = async (req, res) => {
     try {
@@ -38,11 +39,9 @@ export const registerCtrl = async (req, res) => {
             });
         }
 
-        // Generamos los tokens
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken();
 
-        // Guardamos el refresh token en BD para poder validarlo después (endpoint 7)
         await User.findByIdAndUpdate(user._id, { refreshToken });
 
         res.status(201).json({
@@ -113,7 +112,6 @@ export const loginCtrl = async (req, res) => {
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken();
 
-        // Guardamos el refresh token en BD
         await User.findByIdAndUpdate(user._id, { refreshToken });
 
         res.json({
@@ -241,28 +239,21 @@ export const uploadLogoCtrl = async (req, res) => {
     }
 };
 
-// Endpoint 7a: Refresh token (POST /api/user/refresh)
 export const refreshCtrl = async (req, res) => {
     try {
         const { refreshToken } = req.body;
 
-        // Buscamos el usuario que tenga ese refresh token almacenado
         const user = await User.findOne({ refreshToken }).select('+refreshToken');
-
         if (!user) {
             return handleHttpError(res, 'REFRESH_TOKEN_NO_VALIDO', 401);
         }
 
-        // Generamos un nuevo access token y rotamos el refresh token
         const newAccessToken = generateAccessToken(user);
         const newRefreshToken = generateRefreshToken();
 
         await User.findByIdAndUpdate(user._id, { refreshToken: newRefreshToken });
 
-        res.json({
-            token: newAccessToken,
-            refreshToken: newRefreshToken,
-        });
+        res.json({ token: newAccessToken, refreshToken: newRefreshToken });
 
     } catch (error) {
         console.error(error);
@@ -270,17 +261,90 @@ export const refreshCtrl = async (req, res) => {
     }
 };
 
-// Endpoint 7b: Logout (POST /api/user/logout)
 export const logoutCtrl = async (req, res) => {
     try {
-        // Eliminamos el refresh token del usuario para invalidar la sesión
         await User.findByIdAndUpdate(req.user._id, { refreshToken: null });
-
         res.json({ mensaje: 'Sesión cerrada correctamente' });
-
     } catch (error) {
         console.error(error);
         handleHttpError(res, 'ERROR_LOGOUT');
+    }
+};
+
+// Endpoint 8: Eliminar usuario (DELETE /api/user)
+export const deleteUserCtrl = async (req, res) => {
+    try {
+        const { soft } = req.query;
+        const userId = req.user._id;
+
+        if (soft === 'true') {
+            await User.softDeleteById(userId, userId);
+        } else {
+            await User.hardDelete(userId);
+        }
+
+        notificationService.emit('user:deleted', { userId });
+
+        res.json({ mensaje: 'Usuario eliminado correctamente' });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_ELIMINAR_USUARIO');
+    }
+};
+
+// Endpoint 9: Cambiar contraseña (PUT /api/user/password)
+export const changePasswordCtrl = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        const user = await User.findById(req.user._id).select('+password');
+
+        const passwordMatch = await compare(currentPassword, user.password);
+        if (!passwordMatch) {
+            return handleHttpError(res, 'CONTRASEÑA_ACTUAL_INCORRECTA', 401);
+        }
+
+        const hashedPassword = await encrypt(newPassword);
+        await User.findByIdAndUpdate(user._id, { password: hashedPassword });
+
+        res.json({ mensaje: 'Contraseña actualizada correctamente' });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_CAMBIAR_CONTRASEÑA');
+    }
+};
+
+// Endpoint 10: Invitar compañero (POST /api/user/invite)
+export const inviteUserCtrl = async (req, res) => {
+    try {
+        const { email, name, lastName } = req.body;
+        const inviter = req.user;
+
+        if (!inviter.company) {
+            return handleHttpError(res, 'NECESITAS_EMPRESA_PARA_INVITAR', 400);
+        }
+
+        const tempPassword = await encrypt(`Bildy${Math.random().toString(36).slice(2, 10)}!`);
+
+        const newUser = await User.create({
+            email,
+            name,
+            lastName,
+            password: tempPassword,
+            company: inviter.company,
+            role: 'guest',
+            status: 'pending',
+        });
+
+        notificationService.emit('user:invited', { email, companyId: inviter.company });
+
+        res.status(201).json({ user: newUser });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_INVITAR_USUARIO');
     }
 };
 

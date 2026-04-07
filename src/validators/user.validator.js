@@ -61,3 +61,25 @@ export const refreshTokenValidator = z.object({
         refreshToken: z.string().min(1, 'El refresh token es obligatorio'),
     })
 });
+
+export const changePasswordValidator = z.object({
+    body: z.object({
+        currentPassword: z.string().min(1, 'La contraseña actual es obligatoria'),
+        newPassword: z.string()
+            .min(8, 'La contraseña debe tener al menos 8 caracteres')
+            .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
+            .regex(/[a-z]/, 'Debe contener al menos una minúscula')
+            .regex(/[0-9]/, 'Debe contener al menos un número'),
+    }).refine(data => data.currentPassword !== data.newPassword, {
+        message: 'La nueva contraseña no puede ser igual a la actual',
+        path: ['newPassword'],
+    })
+});
+
+export const inviteValidator = z.object({
+    body: z.object({
+        email:    z.string().email().transform(val => val.toLowerCase().trim()),
+        name:     z.string().trim().min(1, 'El nombre es obligatorio'),
+        lastName: z.string().trim().min(1, 'Los apellidos son obligatorios'),
+    })
+});

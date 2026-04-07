@@ -4,22 +4,25 @@ GET http://localhost:3000/pruebaDB
 
 
 ########################################################################
-###  FLUJO COMPLETO — gonzaloPrueba@bildyapp.com (endpoints 1 → 4)
+###  FLUJO COMPLETO — gonzaloPrueba@bildyapp.com (endpoints 1 → 10)
 ###
 ###  PASO 1 → Ejecuta "FLUJO | 1. Registro"
 ###  PASO 2 → Copia el token de la respuesta → pégalo en @token_prueba
+###           Copia también el refreshToken → pégalo en @refresh_prueba
 ###  PASO 3 → Abre MongoDB Atlas, busca el usuario gonzaloPrueba@bildyapp.com
 ###            y copia el campo verificationCode en @code_prueba
-
 ###  PASO 4 → Ejecuta "FLUJO | 2. Validación email"
-###  PASO 5 → Ejecuta "FLUJO | 3. Login" y actualiza @token_prueba con el nuevo token
+###  PASO 5 → Ejecuta "FLUJO | 3. Login" y actualiza @token_prueba y @refresh_prueba
 ###  PASO 6 → Ejecuta "FLUJO | 4a. Datos personales"
 ###  PASO 7 → Ejecuta "FLUJO | 4b. Empresa nueva"  (queda como admin)
 ###        ó  Ejecuta "FLUJO | 4b. Autónomo"        (usa sus datos personales)
+###  PASO 8 → Ejecuta "FLUJO | 7a. Refresh" cuando el access token expire
+###  PASO 9 → Ejecuta "FLUJO | 7b. Logout" para cerrar sesión
 ########################################################################
 
-@token_prueba = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWQ1NmM5ODA5OWY0YmYyNDQwZGNlMzciLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzU1OTQ4NDAsImV4cCI6MTc3NTU5NTc0MH0.K_R1MsPdZxJD9L2cGMkPcBtdlu64lQTe3eao2EKYlac
-@code_prueba  = 326852
+@token_prueba   = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWQ1NmM5ODA5OWY0YmYyNDQwZGNlMzciLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzU1OTQ4NDAsImV4cCI6MTc3NTU5NTc0MH0.K_R1MsPdZxJD9L2cGMkPcBtdlu64lQTe3eao2EKYlac
+@refresh_prueba = PEGAR_REFRESH_TOKEN_AQUI
+@code_prueba    = 326852
 
 ### FLUJO | 1. Registro
 POST http://localhost:3000/api/user/register
@@ -279,4 +282,88 @@ Content-Type: image/png
 ### FLUJO | 6. Obtener usuario (gonzaloPrueba — debe devolver company populada y fullName)
 GET http://localhost:3000/api/user
 Authorization: Bearer {{token_prueba}}
+
+### FLUJO | 7a. Refresh token (usar cuando el access token expire)
+POST http://localhost:3000/api/user/refresh
+Content-Type: application/json
+
+{
+    "refreshToken": "{{refresh_prueba}}"
+}
+
+### FLUJO | 7b. Logout
+POST http://localhost:3000/api/user/logout
+Authorization: Bearer {{token_prueba}}
+
+### FLUJO | 8. Eliminar usuario — soft delete
+DELETE http://localhost:3000/api/user?soft=true
+Authorization: Bearer {{token_prueba}}
+
+### FLUJO | 8. Eliminar usuario — hard delete
+DELETE http://localhost:3000/api/user
+Authorization: Bearer {{token_prueba}}
+
+### FLUJO | 9. Cambiar contraseña
+PUT http://localhost:3000/api/user/password
+Content-Type: application/json
+Authorization: Bearer {{token_prueba}}
+
+{
+    "currentPassword": "GonzaloPass1",
+    "newPassword": "GonzaloPass2"
+}
+
+### FLUJO | 10. Invitar compañero (solo admin con empresa)
+POST http://localhost:3000/api/user/invite
+Content-Type: application/json
+Authorization: Bearer {{token_prueba}}
+
+{
+    "email": "compañero@bildyapp.com",
+    "name": "Compañero",
+    "lastName": "De Prueba"
+}
+
+########################################################################
+
+### Endpoint 7a — Refresh token (plantilla)
+POST http://localhost:3000/api/user/refresh
+Content-Type: application/json
+
+{
+    "refreshToken": "PEGAR_REFRESH_TOKEN"
+}
+
+### Endpoint 7b — Logout
+POST http://localhost:3000/api/user/logout
+Authorization: Bearer <TOKEN_ACCESO>
+
+### Endpoint 8 — Eliminar usuario (soft delete)
+DELETE http://localhost:3000/api/user?soft=true
+Authorization: Bearer <TOKEN_ACCESO>
+
+### Endpoint 8 — Eliminar usuario (hard delete)
+DELETE http://localhost:3000/api/user
+Authorization: Bearer <TOKEN_ACCESO>
+
+### Endpoint 9 — Cambiar contraseña
+PUT http://localhost:3000/api/user/password
+Content-Type: application/json
+Authorization: Bearer <TOKEN_ACCESO>
+
+{
+    "currentPassword": "ContraseñaActual1",
+    "newPassword": "ContraseñaNueva2"
+}
+
+### Endpoint 10 — Invitar compañero (solo admin)
+POST http://localhost:3000/api/user/invite
+Content-Type: application/json
+Authorization: Bearer <TOKEN_ACCESO>
+
+{
+    "email": "invitado@bildyapp.com",
+    "name": "Nombre",
+    "lastName": "Apellido"
+}
 
