@@ -1,0 +1,28 @@
+### Prueba servidor
+GET http://localhost:3000/pruebaDB
+
+### Registro de usuario
+POST http://localhost:3000/api/user/register
+Content-Type: application/json
+
+{
+    "email": "gonzalo@test.com",
+    "password": "Prueba01"
+}
+### Registro de usuario cambiando la contraseña, mensaje de email ya registrado
+POST http://localhost:3000/api/user/register
+Content-Type: application/json
+
+{
+    "email": "gonzalo@test.com",
+    "password": "Prueba02"
+}
+
+### Registro de usuario sin mayusculas, error de falta de mayuscula en la contraseña
+POST http://localhost:3000/api/user/register
+Content-Type: application/json
+
+{
+    "email": "gonzalo1@test.com",
+    "password": "sinmayusculas0"
+}
