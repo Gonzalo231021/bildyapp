@@ -8,7 +8,7 @@ const addressSchema = z.object({
     province: z.string().optional(),
 }).optional();
 
-export const createClientValidator = z.object({
+const clientBodySchema = z.object({
     name: z.string().min(1, 'El nombre es obligatorio'),
     cif: z.string().min(1, 'El CIF es obligatorio'),
     email: z.string().email('Email no válido').optional(),
@@ -16,4 +16,10 @@ export const createClientValidator = z.object({
     address: addressSchema,
 });
 
-export const updateClientValidator = createClientValidator.partial();
+export const createClientValidator = z.object({
+    body: clientBodySchema,
+});
+
+export const updateClientValidator = z.object({
+    body: clientBodySchema.partial(),
+});

@@ -8,7 +8,7 @@ const addressSchema = z.object({
     province: z.string().optional(),
 }).optional();
 
-export const createProjectValidator = z.object({
+const projectBodySchema = z.object({
     name: z.string().min(1, 'El nombre es obligatorio'),
     projectCode: z.string().min(1, 'El código del proyecto es obligatorio'),
     client: z.string().min(1, 'El cliente es obligatorio'),
@@ -18,4 +18,10 @@ export const createProjectValidator = z.object({
     active: z.boolean().optional(),
 });
 
-export const updateProjectValidator = createProjectValidator.partial();
+export const createProjectValidator = z.object({
+    body: projectBodySchema,
+});
+
+export const updateProjectValidator = z.object({
+    body: projectBodySchema.partial(),
+});
