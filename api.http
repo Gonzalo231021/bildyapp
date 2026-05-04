@@ -367,3 +367,7 @@ Authorization: Bearer <TOKEN_ACCESO>
     "lastName": "Apellido"
 }
 
+
+### Prueba de ruta protegida con token inválido (debe dar error 401)
+GET http://localhost:3000/api/client/
+Authorization: Bearer tokeninvalido
