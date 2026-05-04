@@ -2,6 +2,7 @@ import DeliveryNote from '../models/DeliveryNote.js';
 import Client from '../models/Client.js';
 import Project from '../models/Project.js';
 import { handleHttpError } from '../utils/handleError.js';
+import { generateDeliveryNotePdf } from '../utils/pdf.js';
 
 export const createDeliveryNoteCtrl = async (req, res) => {
     try {
@@ -119,6 +120,39 @@ export const signDeliveryNoteCtrl = async (req, res) => {
     } catch (error) {
         console.error(error);
         handleHttpError(res, 'ERROR_FIRMAR_ALBARAN');
+    }
+};
+
+export const getDeliveryNotePdfCtrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = req.user;
+
+        const deliveryNote = await DeliveryNote.findOne({ _id: id, company: user.company })
+            .populate('client', 'name cif email')
+            .populate('project', 'name projectCode');
+
+        if (!deliveryNote) {
+            return handleHttpError(res, 'ALBARAN_NO_ENCONTRADO', 404);
+        }
+
+        const pdfBuffer = await generateDeliveryNotePdf(deliveryNote);
+
+        if (!deliveryNote.pdfUrl) {
+            await DeliveryNote.findByIdAndUpdate(id, { pdfUrl: `pdf_${id}` });
+        }
+
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="albaran-${id}.pdf"`,
+            'Content-Length': pdfBuffer.length,
+        });
+
+        res.end(pdfBuffer);
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_GENERAR_PDF');
     }
 };
 

@@ -4,6 +4,7 @@ import {
     getDeliveryNotesCtrl,
     getDeliveryNoteByIdCtrl,
     signDeliveryNoteCtrl,
+    getDeliveryNotePdfCtrl,
     deleteDeliveryNoteCtrl,
 } from '../controllers/deliverynote.controller.js';
 import authMiddleware from '../middleware/auth.js';
@@ -19,6 +20,7 @@ router.post('/', validate(createDeliveryNoteValidator), createDeliveryNoteCtrl);
 router.get('/', getDeliveryNotesCtrl);
 router.get('/:id', getDeliveryNoteByIdCtrl);
 router.patch('/:id/sign', uploadSignature, signDeliveryNoteCtrl);
+router.get('/:id/pdf', getDeliveryNotePdfCtrl);
 router.delete('/:id', deleteDeliveryNoteCtrl);
 
 export default router;
