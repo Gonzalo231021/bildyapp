@@ -1,18 +1,22 @@
+import morganBody from 'morgan-body';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
-import mongoSanitize from 'express-mongo-sanitize';
+//import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
 import userRoutes from './routes/user.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+
+import { loggerStream } from './utils/handleLogger.js';
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 
 app.use(helmet());
-app.use(mongoSanitize());
+
 app.use(rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -20,6 +24,27 @@ app.use(rateLimit({
 }));
 
 app.use(express.json());
+//app.use(mongoSanitize());
+
+app.use((req, res, next) => {
+    const check = (obj) => {
+        if (!obj) return false;
+        return JSON.stringify(obj).includes('$');
+    };
+    if (check(req.body) || check(req.params) || check(req.query)) {
+        return res.status(400).json({ error: true, mensaje: 'Caracteres no permitidos' });
+    }
+    next();
+});
+
+
+morganBody(app, {
+    noColors: true,
+    stream: loggerStream,
+    skip: (req, res) => res.statusCode < 400
+});
+
+
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.use('/api/user', userRoutes);

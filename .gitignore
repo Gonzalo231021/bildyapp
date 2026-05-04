@@ -3,3 +3,5 @@ node_modules/
 uploads/
 *.log
 public-web2-2026/
+coverage/
+.DS_Store
