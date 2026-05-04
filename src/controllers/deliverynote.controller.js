@@ -3,6 +3,7 @@ import Client from '../models/Client.js';
 import Project from '../models/Project.js';
 import { handleHttpError } from '../utils/handleError.js';
 import { generateDeliveryNotePdf } from '../utils/pdf.js';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 export const createDeliveryNoteCtrl = async (req, res) => {
     try {
@@ -107,11 +108,11 @@ export const signDeliveryNoteCtrl = async (req, res) => {
             return handleHttpError(res, 'SE_REQUIERE_IMAGEN_DE_FIRMA', 400);
         }
 
-        const signatureBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+        const signatureUrl = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
 
         const updated = await DeliveryNote.findByIdAndUpdate(
             id,
-            { signed: true, signatureUrl: signatureBase64 },
+            { signed: true, signatureUrl },
             { new: true }
         );
 
