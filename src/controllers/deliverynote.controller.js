@@ -88,6 +88,40 @@ export const getDeliveryNoteByIdCtrl = async (req, res) => {
     }
 };
 
+export const signDeliveryNoteCtrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = req.user;
+
+        const deliveryNote = await DeliveryNote.findOne({ _id: id, company: user.company });
+        if (!deliveryNote) {
+            return handleHttpError(res, 'ALBARAN_NO_ENCONTRADO', 404);
+        }
+
+        if (deliveryNote.signed) {
+            return handleHttpError(res, 'EL_ALBARAN_YA_ESTA_FIRMADO', 400);
+        }
+
+        if (!req.file) {
+            return handleHttpError(res, 'SE_REQUIERE_IMAGEN_DE_FIRMA', 400);
+        }
+
+        const signatureBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+
+        const updated = await DeliveryNote.findByIdAndUpdate(
+            id,
+            { signed: true, signatureUrl: signatureBase64 },
+            { new: true }
+        );
+
+        res.json({ deliveryNote: updated });
+
+    } catch (error) {
+        console.error(error);
+        handleHttpError(res, 'ERROR_FIRMAR_ALBARAN');
+    }
+};
+
 export const deleteDeliveryNoteCtrl = async (req, res) => {
     try {
         const { id } = req.params;
