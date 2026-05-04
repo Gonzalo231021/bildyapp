@@ -5,10 +5,11 @@ import { fileURLToPath } from 'url';
 import helmet from 'helmet';
 //import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
+import swaggerUi from 'swagger-ui-express';
 import router from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
-
 import { loggerStream } from './utils/handleLogger.js';
+import { swaggerSpec } from './utils/swagger.js';
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -46,6 +47,8 @@ morganBody(app, {
 
 
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/api', router);
 
