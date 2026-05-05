@@ -6,7 +6,7 @@ import { generateAccessToken, generateRefreshToken } from '../utils/handleJwt.js
 import { handleHttpError } from '../utils/handleError.js';
 import notificationService from '../services/notification.service.js';
 
-export const registerCtrl = async (req, res) => {
+export const registerCtrl = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
@@ -21,7 +21,7 @@ export const registerCtrl = async (req, res) => {
 
         // Generamos el código de verificación de 6 dígitos (Permitimos códigos con ceros a la izquierda)
         const verificationCode = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-        
+
         // Si el usuario ya existe pero no está verificado, actualizamos su información
         let user;
         if (existingUser) {
@@ -58,13 +58,12 @@ export const registerCtrl = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_REGISTRO_USUARIO');
+        next(error);
     }
 };
 
 
-export const validateEmailCtrl = async (req, res) => {
+export const validateEmailCtrl = async (req, res, next) => {
     try {
         const { code} = req.body;
         const user = req.user;
@@ -93,12 +92,11 @@ export const validateEmailCtrl = async (req, res) => {
         res.json({ mensaje: 'Email verificado correctamente' });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_VALIDACION_EMAIL');
+        next(error);
     }
 };
 
-export const loginCtrl = async (req, res) => {
+export const loginCtrl = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
@@ -130,13 +128,12 @@ export const loginCtrl = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_LOGIN');
+        next(error);
     }
 };
 
 // Endpoint 4a: Onboarding — datos personales (PUT /api/user/register)
-export const updatePersonalDataCtrl = async (req, res) => {
+export const updatePersonalDataCtrl = async (req, res, next) => {
     try {
         const { name, lastName, nif, address } = req.body;
         const userId = req.user._id;
@@ -150,13 +147,12 @@ export const updatePersonalDataCtrl = async (req, res) => {
         res.json({ user: updatedUser });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_ACTUALIZAR_DATOS_PERSONALES');
+        next(error);
     }
 };
 
 // Endpoint 4b: Onboarding — datos de compañía (PATCH /api/user/company)
-export const updateCompanyCtrl = async (req, res) => {
+export const updateCompanyCtrl = async (req, res, next) => {
     try {
         const { isFreelance, name, cif, address } = req.body;
         const user = req.user;
@@ -209,13 +205,12 @@ export const updateCompanyCtrl = async (req, res) => {
         res.json({ user: updatedUser });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_ACTUALIZAR_EMPRESA');
+        next(error);
     }
 };
 
 // Endpoint 5: Logo de la compañía (PATCH /api/user/logo)
-export const uploadLogoCtrl = async (req, res) => {
+export const uploadLogoCtrl = async (req, res, next) => {
     try {
         const user = req.user;
 
@@ -238,12 +233,11 @@ export const uploadLogoCtrl = async (req, res) => {
         res.json({ company });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_SUBIR_LOGO');
+        next(error);
     }
 };
 
-export const refreshCtrl = async (req, res) => {
+export const refreshCtrl = async (req, res, next) => {
     try {
         const { refreshToken } = req.body;
 
@@ -260,23 +254,21 @@ export const refreshCtrl = async (req, res) => {
         res.json({ token: newAccessToken, refreshToken: newRefreshToken });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_REFRESH_TOKEN');
+        next(error);
     }
 };
 
-export const logoutCtrl = async (req, res) => {
+export const logoutCtrl = async (req, res, next) => {
     try {
         await User.findByIdAndUpdate(req.user._id, { refreshToken: null });
         res.json({ mensaje: 'Sesión cerrada correctamente' });
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_LOGOUT');
+        next(error);
     }
 };
 
 // Endpoint 8: Eliminar usuario (DELETE /api/user)
-export const deleteUserCtrl = async (req, res) => {
+export const deleteUserCtrl = async (req, res, next) => {
     try {
         const { soft } = req.query;
         const userId = req.user._id;
@@ -292,13 +284,12 @@ export const deleteUserCtrl = async (req, res) => {
         res.json({ mensaje: 'Usuario eliminado correctamente' });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_ELIMINAR_USUARIO');
+        next(error);
     }
 };
 
 // Endpoint 9: Cambiar contraseña (PUT /api/user/password)
-export const changePasswordCtrl = async (req, res) => {
+export const changePasswordCtrl = async (req, res, next) => {
     try {
         const { currentPassword, newPassword } = req.body;
 
@@ -315,13 +306,12 @@ export const changePasswordCtrl = async (req, res) => {
         res.json({ mensaje: 'Contraseña actualizada correctamente' });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_CAMBIAR_CONTRASEÑA');
+        next(error);
     }
 };
 
 // Endpoint 10: Invitar compañero (POST /api/user/invite)
-export const inviteUserCtrl = async (req, res) => {
+export const inviteUserCtrl = async (req, res, next) => {
     try {
         const { email, name, lastName } = req.body;
         const inviter = req.user;
@@ -347,13 +337,12 @@ export const inviteUserCtrl = async (req, res) => {
         res.status(201).json({ user: newUser });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_INVITAR_USUARIO');
+        next(error);
     }
 };
 
 // Endpoint 6: Obtener usuario (GET /api/user)
-export const getUserCtrl = async (req, res) => {
+export const getUserCtrl = async (req, res, next) => {
     try {
         const user = await User.findById(req.user._id).populate('company');
 
@@ -364,7 +353,6 @@ export const getUserCtrl = async (req, res) => {
         res.json({ user });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_OBTENER_USUARIO');
+        next(error);
     }
 };

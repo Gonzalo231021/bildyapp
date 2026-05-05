@@ -3,7 +3,7 @@ import Client from '../models/Client.js';
 import { handleHttpError } from '../utils/handleError.js';
 import { buildPaginationQuery, buildPaginationResponse } from '../utils/pagination.js';
 
-export const createProjectCtrl = async (req, res) => {
+export const createProjectCtrl = async (req, res, next) => {
     try {
         const { name, projectCode, client, address, email, notes, active } = req.body;
         const user = req.user;
@@ -37,12 +37,11 @@ export const createProjectCtrl = async (req, res) => {
         res.status(201).json({ project });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_CREAR_PROYECTO');
+        next(error);
     }
 };
 
-export const updateProjectCtrl = async (req, res) => {
+export const updateProjectCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = req.user;
@@ -57,12 +56,11 @@ export const updateProjectCtrl = async (req, res) => {
         res.json({ project: updated });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_ACTUALIZAR_PROYECTO');
+        next(error);
     }
 };
 
-export const getProjectsCtrl = async (req, res) => {
+export const getProjectsCtrl = async (req, res, next) => {
     try {
         const user = req.user;
         const { page, limit, name, client, active, sort } = req.query;
@@ -87,12 +85,11 @@ export const getProjectsCtrl = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_OBTENER_PROYECTOS');
+        next(error);
     }
 };
 
-export const getProjectByIdCtrl = async (req, res) => {
+export const getProjectByIdCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = req.user;
@@ -106,12 +103,11 @@ export const getProjectByIdCtrl = async (req, res) => {
         res.json({ project });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_OBTENER_PROYECTO');
+        next(error);
     }
 };
 
-export const deleteProjectCtrl = async (req, res) => {
+export const deleteProjectCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { soft } = req.query;
@@ -131,23 +127,21 @@ export const deleteProjectCtrl = async (req, res) => {
         res.json({ mensaje: 'Proyecto eliminado correctamente' });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_ELIMINAR_PROYECTO');
+        next(error);
     }
 };
 
-export const getArchivedProjectsCtrl = async (req, res) => {
+export const getArchivedProjectsCtrl = async (req, res, next) => {
     try {
         const user = req.user;
         const projects = await Project.findDeleted({ company: user.company });
         res.json({ projects });
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_OBTENER_PROYECTOS_ARCHIVADOS');
+        next(error);
     }
 };
 
-export const restoreProjectCtrl = async (req, res) => {
+export const restoreProjectCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = req.user;
@@ -161,7 +155,6 @@ export const restoreProjectCtrl = async (req, res) => {
         res.json({ project: restored });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_RESTAURAR_PROYECTO');
+        next(error);
     }
 };

@@ -5,7 +5,7 @@ import { handleHttpError } from '../utils/handleError.js';
 import { generateDeliveryNotePdf } from '../utils/pdf.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
 
-export const createDeliveryNoteCtrl = async (req, res) => {
+export const createDeliveryNoteCtrl = async (req, res, next) => {
     try {
         const user = req.user;
 
@@ -41,12 +41,11 @@ export const createDeliveryNoteCtrl = async (req, res) => {
         res.status(201).json({ deliveryNote });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_CREAR_ALBARAN');
+        next(error);
     }
 };
 
-export const getDeliveryNotesCtrl = async (req, res) => {
+export const getDeliveryNotesCtrl = async (req, res, next) => {
     try {
         const user = req.user;
         const { project, client, format } = req.query;
@@ -64,12 +63,11 @@ export const getDeliveryNotesCtrl = async (req, res) => {
         res.json({ deliveryNotes });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_OBTENER_ALBARANES');
+        next(error);
     }
 };
 
-export const getDeliveryNoteByIdCtrl = async (req, res) => {
+export const getDeliveryNoteByIdCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = req.user;
@@ -85,12 +83,11 @@ export const getDeliveryNoteByIdCtrl = async (req, res) => {
         res.json({ deliveryNote });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_OBTENER_ALBARAN');
+        next(error);
     }
 };
 
-export const signDeliveryNoteCtrl = async (req, res) => {
+export const signDeliveryNoteCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = req.user;
@@ -119,12 +116,11 @@ export const signDeliveryNoteCtrl = async (req, res) => {
         res.json({ deliveryNote: updated });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_FIRMAR_ALBARAN');
+        next(error);
     }
 };
 
-export const getDeliveryNotePdfCtrl = async (req, res) => {
+export const getDeliveryNotePdfCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = req.user;
@@ -152,12 +148,11 @@ export const getDeliveryNotePdfCtrl = async (req, res) => {
         res.end(pdfBuffer);
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_GENERAR_PDF');
+        next(error);
     }
 };
 
-export const deleteDeliveryNoteCtrl = async (req, res) => {
+export const deleteDeliveryNoteCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = req.user;
@@ -176,7 +171,6 @@ export const deleteDeliveryNoteCtrl = async (req, res) => {
         res.json({ mensaje: 'Albarán eliminado correctamente' });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_ELIMINAR_ALBARAN');
+        next(error);
     }
 };

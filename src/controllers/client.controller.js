@@ -2,7 +2,7 @@ import Client from '../models/Client.js';
 import { handleHttpError } from '../utils/handleError.js';
 import { buildPaginationQuery, buildPaginationResponse } from '../utils/pagination.js';
 
-export const createClientCtrl = async (req, res) => {
+export const createClientCtrl = async (req, res, next) => {
     try {
         const { name, cif, email, phone, address } = req.body;
         const user = req.user;
@@ -29,12 +29,11 @@ export const createClientCtrl = async (req, res) => {
         res.status(201).json({ client });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_CREAR_CLIENTE');
+        next(error);
     }
 };
 
-export const updateClientCtrl = async (req, res) => {
+export const updateClientCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = req.user;
@@ -49,12 +48,11 @@ export const updateClientCtrl = async (req, res) => {
         res.json({ client: updated });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_ACTUALIZAR_CLIENTE');
+        next(error);
     }
 };
 
-export const getClientsCtrl = async (req, res) => {
+export const getClientsCtrl = async (req, res, next) => {
     try {
         const user = req.user;
         const { page, limit, name, search, sort } = req.query;
@@ -80,12 +78,11 @@ export const getClientsCtrl = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_OBTENER_CLIENTES');
+        next(error);
     }
 };
 
-export const getClientByIdCtrl = async (req, res) => {
+export const getClientByIdCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = req.user;
@@ -98,12 +95,11 @@ export const getClientByIdCtrl = async (req, res) => {
         res.json({ client });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_OBTENER_CLIENTE');
+        next(error);
     }
 };
 
-export const deleteClientCtrl = async (req, res) => {
+export const deleteClientCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const { soft } = req.query;
@@ -123,12 +119,11 @@ export const deleteClientCtrl = async (req, res) => {
         res.json({ mensaje: 'Cliente eliminado correctamente' });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_ELIMINAR_CLIENTE');
+        next(error);
     }
 };
 
-export const getArchivedClientsCtrl = async (req, res) => {
+export const getArchivedClientsCtrl = async (req, res, next) => {
     try {
         const user = req.user;
 
@@ -137,12 +132,11 @@ export const getArchivedClientsCtrl = async (req, res) => {
         res.json({ clients });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_OBTENER_CLIENTES_ARCHIVADOS');
+        next(error);
     }
 };
 
-export const restoreClientCtrl = async (req, res) => {
+export const restoreClientCtrl = async (req, res, next) => {
     try {
         const { id } = req.params;
         const user = req.user;
@@ -157,7 +151,6 @@ export const restoreClientCtrl = async (req, res) => {
         res.json({ client: restored });
 
     } catch (error) {
-        console.error(error);
-        handleHttpError(res, 'ERROR_RESTAURAR_CLIENTE');
+        next(error);
     }
 };
