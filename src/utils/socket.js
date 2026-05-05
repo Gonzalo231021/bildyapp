@@ -1,4 +1,5 @@
 import { Server } from 'socket.io';
+import { verifyToken } from './handleJwt.js';
 
 let io = null;
 
@@ -9,6 +10,18 @@ export const initSocket = (httpServer) => {
             methods: ['GET', 'POST'],
         },
     });
+
+    io.use((socket, next) => {
+        const token = socket.handshake.auth?.token;
+        if (!token) return next(new Error('NO_AUTORIZADO'));
+
+        const payload = verifyToken(token);
+        if (!payload) return next(new Error('NO_AUTORIZADO'));
+
+        socket.data.user = payload;
+        next();
+    });
+
     return io;
 };
 
