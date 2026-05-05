@@ -2,6 +2,7 @@ import Project from '../models/Project.js';
 import Client from '../models/Client.js';
 import { handleHttpError } from '../utils/handleError.js';
 import { buildPaginationQuery, buildPaginationResponse } from '../utils/pagination.js';
+import { getIo } from '../utils/socket.js';
 
 export const createProjectCtrl = async (req, res, next) => {
     try {
@@ -33,6 +34,8 @@ export const createProjectCtrl = async (req, res, next) => {
             notes,
             active: active ?? true,
         });
+
+        getIo().to(`room:${user.company}`).emit('project:new', { project });
 
         res.status(201).json({ project });
 

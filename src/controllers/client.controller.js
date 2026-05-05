@@ -1,6 +1,7 @@
 import Client from '../models/Client.js';
 import { handleHttpError } from '../utils/handleError.js';
 import { buildPaginationQuery, buildPaginationResponse } from '../utils/pagination.js';
+import { getIo } from '../utils/socket.js';
 
 export const createClientCtrl = async (req, res, next) => {
     try {
@@ -25,6 +26,8 @@ export const createClientCtrl = async (req, res, next) => {
             phone,
             address,
         });
+
+        getIo().to(`room:${user.company}`).emit('client:new', { client });
 
         res.status(201).json({ client });
 
