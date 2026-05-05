@@ -1,5 +1,6 @@
 import Client from '../models/Client.js';
 import { handleHttpError } from '../utils/handleError.js';
+import { buildPaginationQuery, buildPaginationResponse } from '../utils/pagination.js';
 
 export const createClientCtrl = async (req, res) => {
     try {
@@ -56,24 +57,22 @@ export const updateClientCtrl = async (req, res) => {
 export const getClientsCtrl = async (req, res) => {
     try {
         const user = req.user;
-        const { page = 1, limit = 10, name, sort = '-createdAt' } = req.query;
+        const { page, limit, name, sort } = req.query;
+        const { skip, limit: lim, sort: sortStr, pageNum } = buildPaginationQuery({ page, limit, sort });
 
         const filter = { company: user.company };
         if (name) filter.name = { $regex: name, $options: 'i' };
 
-        const skip = (Number(page) - 1) * Number(limit);
         const total = await Client.countDocuments(filter);
 
         const clients = await Client.find(filter)
-            .sort(sort)
+            .sort(sortStr)
             .skip(skip)
-            .limit(Number(limit));
+            .limit(lim);
 
         res.json({
             clients,
-            totalItems: total,
-            totalPages: Math.ceil(total / Number(limit)),
-            currentPage: Number(page),
+            ...buildPaginationResponse(total, lim, pageNum),
         });
 
     } catch (error) {

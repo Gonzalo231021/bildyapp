@@ -1,6 +1,7 @@
 import Project from '../models/Project.js';
 import Client from '../models/Client.js';
 import { handleHttpError } from '../utils/handleError.js';
+import { buildPaginationQuery, buildPaginationResponse } from '../utils/pagination.js';
 
 export const createProjectCtrl = async (req, res) => {
     try {
@@ -64,27 +65,25 @@ export const updateProjectCtrl = async (req, res) => {
 export const getProjectsCtrl = async (req, res) => {
     try {
         const user = req.user;
-        const { page = 1, limit = 10, name, client, active, sort = '-createdAt' } = req.query;
+        const { page, limit, name, client, active, sort } = req.query;
+        const { skip, limit: lim, sort: sortStr, pageNum } = buildPaginationQuery({ page, limit, sort });
 
         const filter = { company: user.company };
         if (name) filter.name = { $regex: name, $options: 'i' };
         if (client) filter.client = client;
         if (active !== undefined) filter.active = active === 'true';
 
-        const skip = (Number(page) - 1) * Number(limit);
         const total = await Project.countDocuments(filter);
 
         const projects = await Project.find(filter)
             .populate('client', 'name cif')
-            .sort(sort)
+            .sort(sortStr)
             .skip(skip)
-            .limit(Number(limit));
+            .limit(lim);
 
         res.json({
             projects,
-            totalItems: total,
-            totalPages: Math.ceil(total / Number(limit)),
-            currentPage: Number(page),
+            ...buildPaginationResponse(total, lim, pageNum),
         });
 
     } catch (error) {
