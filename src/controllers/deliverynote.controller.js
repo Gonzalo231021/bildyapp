@@ -4,6 +4,7 @@ import Project from '../models/Project.js';
 import AppError from '../utils/AppError.js';
 import { generateDeliveryNotePdf } from '../utils/pdf.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
+import { optimizeImage } from '../utils/imageOptimizer.js';
 import { getIo } from '../utils/socket.js';
 
 export const createDeliveryNoteCtrl = async (req, res) => {
@@ -68,7 +69,8 @@ export const signDeliveryNoteCtrl = async (req, res) => {
     if (deliveryNote.signed) throw AppError.badRequest('EL_ALBARAN_YA_ESTA_FIRMADO');
     if (!req.file) throw AppError.badRequest('SE_REQUIERE_IMAGEN_DE_FIRMA');
 
-    const signatureUrl = await uploadToCloudinary(req.file.buffer, req.file.mimetype);
+    const { buffer: optimizedBuffer, mimetype } = await optimizeImage(req.file.buffer);
+    const signatureUrl = await uploadToCloudinary(optimizedBuffer, mimetype);
 
     const updated = await DeliveryNote.findByIdAndUpdate(
         id,
