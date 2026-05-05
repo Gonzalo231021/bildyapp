@@ -57,11 +57,15 @@ export const updateClientCtrl = async (req, res) => {
 export const getClientsCtrl = async (req, res) => {
     try {
         const user = req.user;
-        const { page, limit, name, sort } = req.query;
+        const { page, limit, name, search, sort } = req.query;
         const { skip, limit: lim, sort: sortStr, pageNum } = buildPaginationQuery({ page, limit, sort });
 
         const filter = { company: user.company };
-        if (name) filter.name = { $regex: name, $options: 'i' };
+        if (search) {
+            filter.$text = { $search: search };
+        } else if (name) {
+            filter.name = { $regex: name, $options: 'i' };
+        }
 
         const total = await Client.countDocuments(filter);
 

@@ -48,6 +48,7 @@ const clientSchema = new mongoose.Schema(
 
 clientSchema.index({ company: 1 });
 clientSchema.index({ company: 1, cif: 1 }, { unique: true });
+clientSchema.index({ name: 'text', email: 'text' });
 
 clientSchema.plugin(softDeletePlugin);
 
