@@ -4,6 +4,7 @@ import Project from '../models/Project.js';
 import { handleHttpError } from '../utils/handleError.js';
 import { generateDeliveryNotePdf } from '../utils/pdf.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
+import { getIo } from '../utils/socket.js';
 
 export const createDeliveryNoteCtrl = async (req, res, next) => {
     try {
@@ -37,6 +38,8 @@ export const createDeliveryNoteCtrl = async (req, res, next) => {
             workdate,
             workers,
         });
+
+        getIo().to(`room:${user.company}`).emit('deliverynote:new', { deliveryNote });
 
         res.status(201).json({ deliveryNote });
 
@@ -112,6 +115,8 @@ export const signDeliveryNoteCtrl = async (req, res, next) => {
             { signed: true, signatureUrl },
             { new: true }
         );
+
+        getIo().to(`room:${user.company}`).emit('deliverynote:signed', { deliveryNote: updated });
 
         res.json({ deliveryNote: updated });
 
