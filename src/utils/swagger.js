@@ -20,6 +20,39 @@ const options = {
                 },
             },
             schemas: {
+                ClientInput: {
+                    type: 'object',
+                    required: ['name', 'cif'],
+                    properties: {
+                        name: { type: 'string', example: 'Constructora López S.L.' },
+                        cif: { type: 'string', example: 'B12345678' },
+                        email: { type: 'string', format: 'email' },
+                        phone: { type: 'string' },
+                        address: {
+                            type: 'object',
+                            properties: {
+                                street: { type: 'string' },
+                                number: { type: 'string' },
+                                postal: { type: 'string' },
+                                city: { type: 'string' },
+                                province: { type: 'string' },
+                            },
+                        },
+                    },
+                },
+                Client: {
+                    allOf: [
+                        { $ref: '#/components/schemas/ClientInput' },
+                        {
+                            type: 'object',
+                            properties: {
+                                _id: { type: 'string' },
+                                company: { type: 'string' },
+                                createdAt: { type: 'string', format: 'date-time' },
+                            },
+                        },
+                    ],
+                },
                 DeliveryNote: {
                     type: 'object',
                     properties: {
