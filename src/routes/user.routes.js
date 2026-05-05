@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import {
     registerCtrl,
     validateEmailCtrl,
@@ -29,12 +30,20 @@ import upload from '../middleware/upload.js';
 
 const router = Router();
 
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { error: true, mensaje: 'Demasiados intentos, espera 15 minutos antes de volver a intentarlo' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 // Endpoint 1: Registro de usuario
-router.post('/register', validate(registerValidator), registerCtrl);
+router.post('/register', authLimiter, validate(registerValidator), registerCtrl);
 // Endpoint 2: Validación de email
 router.put('/validation', authMiddleware, validate(validationCodeValidator), validateEmailCtrl);
 // Endpoint 3: Login
-router.post('/login', validate(registerValidator), loginCtrl);
+router.post('/login', authLimiter, validate(registerValidator), loginCtrl);
 // Endpoint 4a: Onboarding — datos personales
 router.put('/register', authMiddleware, validate(personalDataValidator), updatePersonalDataCtrl);
 // Endpoint 4b: Onboarding — datos de compañía
