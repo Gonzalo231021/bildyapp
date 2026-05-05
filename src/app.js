@@ -1,3 +1,4 @@
+import 'express-async-errors';
 import morganBody from 'morgan-body';
 import express from 'express';
 import path from 'path';
