@@ -22,6 +22,17 @@ export const initSocket = (httpServer) => {
         next();
     });
 
+    io.on('connection', (socket) => {
+        const company = socket.data.user?.company;
+        if (company) {
+            socket.join(`room:${company}`);
+        }
+
+        socket.on('disconnect', () => {
+            if (company) socket.leave(`room:${company}`);
+        });
+    });
+
     return io;
 };
 
