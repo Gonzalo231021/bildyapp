@@ -53,6 +53,41 @@ const options = {
                         },
                     ],
                 },
+                ProjectInput: {
+                    type: 'object',
+                    required: ['name', 'projectCode', 'client'],
+                    properties: {
+                        name: { type: 'string', example: 'Reforma oficinas 2026' },
+                        projectCode: { type: 'string', example: 'PRJ-001' },
+                        client: { type: 'string', description: 'ID del cliente' },
+                        email: { type: 'string', format: 'email' },
+                        notes: { type: 'string' },
+                        active: { type: 'boolean', default: true },
+                        address: {
+                            type: 'object',
+                            properties: {
+                                street: { type: 'string' },
+                                number: { type: 'string' },
+                                postal: { type: 'string' },
+                                city: { type: 'string' },
+                                province: { type: 'string' },
+                            },
+                        },
+                    },
+                },
+                Project: {
+                    allOf: [
+                        { $ref: '#/components/schemas/ProjectInput' },
+                        {
+                            type: 'object',
+                            properties: {
+                                _id: { type: 'string' },
+                                company: { type: 'string' },
+                                createdAt: { type: 'string', format: 'date-time' },
+                            },
+                        },
+                    ],
+                },
                 DeliveryNote: {
                     type: 'object',
                     properties: {
