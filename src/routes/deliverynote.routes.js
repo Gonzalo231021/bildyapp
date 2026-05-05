@@ -8,6 +8,7 @@ import {
     deleteDeliveryNoteCtrl,
 } from '../controllers/deliverynote.controller.js';
 import authMiddleware from '../middleware/auth.js';
+import checkRole from '../middleware/role.js';
 import validate from '../middleware/validate.js';
 import { createDeliveryNoteValidator } from '../validators/deliverynote.validator.js';
 import { uploadSignature } from '../utils/multer.js';
@@ -191,6 +192,6 @@ router.get('/:id/pdf', getDeliveryNotePdfCtrl);
  *       400:
  *         description: No se puede eliminar un albarán firmado
  */
-router.delete('/:id', deleteDeliveryNoteCtrl);
+router.delete('/:id', checkRole('admin'), deleteDeliveryNoteCtrl);
 
 export default router;

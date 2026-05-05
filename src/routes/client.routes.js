@@ -9,6 +9,7 @@ import {
     restoreClientCtrl,
 } from '../controllers/client.controller.js';
 import authMiddleware from '../middleware/auth.js';
+import checkRole from '../middleware/role.js';
 import validate from '../middleware/validate.js';
 import { createClientValidator, updateClientValidator } from '../validators/client.validator.js';
 
@@ -21,7 +22,7 @@ router.put('/:id', validate(updateClientValidator), updateClientCtrl);
 router.get('/archived', getArchivedClientsCtrl);
 router.get('/', getClientsCtrl);
 router.get('/:id', getClientByIdCtrl);
-router.delete('/:id', deleteClientCtrl);
-router.patch('/:id/restore', restoreClientCtrl);
+router.delete('/:id', checkRole('admin'), deleteClientCtrl);
+router.patch('/:id/restore', checkRole('admin'), restoreClientCtrl);
 
 export default router;
