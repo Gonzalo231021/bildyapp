@@ -18,10 +18,10 @@ const router = Router();
 router.use(authMiddleware);
 
 /**
- * @openapi
+ * @swagger
  * /deliverynote:
  *   post:
- *     summary: Crear un nuevo albarán
+ *     summary: Crear un nuevo albarán (material u horas)
  *     tags: [Albaranes]
  *     security:
  *       - bearerAuth: []
@@ -30,46 +30,29 @@ router.use(authMiddleware);
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [client, project, format]
- *             properties:
- *               client:
- *                 type: string
- *               project:
- *                 type: string
- *               format:
- *                 type: string
- *                 enum: [material, hours]
- *               material:
- *                 type: string
- *               hours:
- *                 type: number
- *               description:
- *                 type: string
- *               workers:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                     hours:
- *                       type: number
+ *             $ref: '#/components/schemas/DeliveryNoteInput'
  *     responses:
  *       201:
  *         description: Albarán creado correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 deliveryNote:
+ *                   $ref: '#/components/schemas/DeliveryNote'
  *       400:
  *         description: Error de validación
- *       401:
- *         description: No autorizado
+ *       404:
+ *         description: Cliente o proyecto no encontrado
  */
 router.post('/', validate(createDeliveryNoteValidator), createDeliveryNoteCtrl);
 
 /**
- * @openapi
+ * @swagger
  * /deliverynote:
  *   get:
- *     summary: Obtener lista de albaranes de la empresa
+ *     summary: Listar albaranes de la empresa con filtros
  *     tags: [Albaranes]
  *     security:
  *       - bearerAuth: []
@@ -78,10 +61,12 @@ router.post('/', validate(createDeliveryNoteValidator), createDeliveryNoteCtrl);
  *         name: project
  *         schema:
  *           type: string
+ *         description: Filtrar por ID de proyecto
  *       - in: query
  *         name: client
  *         schema:
  *           type: string
+ *         description: Filtrar por ID de cliente
  *       - in: query
  *         name: format
  *         schema:
@@ -90,14 +75,23 @@ router.post('/', validate(createDeliveryNoteValidator), createDeliveryNoteCtrl);
  *     responses:
  *       200:
  *         description: Lista de albaranes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 deliveryNotes:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/DeliveryNote'
  */
 router.get('/', getDeliveryNotesCtrl);
 
 /**
- * @openapi
+ * @swagger
  * /deliverynote/{id}:
  *   get:
- *     summary: Obtener un albarán por ID
+ *     summary: Obtener un albarán por ID con cliente y proyecto populados
  *     tags: [Albaranes]
  *     security:
  *       - bearerAuth: []
@@ -109,17 +103,24 @@ router.get('/', getDeliveryNotesCtrl);
  *           type: string
  *     responses:
  *       200:
- *         description: Albarán encontrado
+ *         description: Datos completos del albarán
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 deliveryNote:
+ *                   $ref: '#/components/schemas/DeliveryNote'
  *       404:
- *         description: No encontrado
+ *         description: Albarán no encontrado
  */
 router.get('/:id', getDeliveryNoteByIdCtrl);
 
 /**
- * @openapi
+ * @swagger
  * /deliverynote/{id}/sign:
  *   patch:
- *     summary: Firmar un albarán (subir imagen de firma)
+ *     summary: Firmar albarán — subir imagen de firma (se sube a Cloudinary)
  *     tags: [Albaranes]
  *     security:
  *       - bearerAuth: []
@@ -135,23 +136,27 @@ router.get('/:id', getDeliveryNoteByIdCtrl);
  *         multipart/form-data:
  *           schema:
  *             type: object
+ *             required: [signature]
  *             properties:
  *               signature:
  *                 type: string
  *                 format: binary
+ *                 description: Imagen PNG/JPG de la firma
  *     responses:
  *       200:
- *         description: Albarán firmado correctamente
+ *         description: Albarán firmado, signatureUrl con URL de Cloudinary
  *       400:
- *         description: Ya firmado o falta imagen
+ *         description: Ya estaba firmado o falta la imagen
+ *       404:
+ *         description: Albarán no encontrado
  */
 router.patch('/:id/sign', uploadSignature, signDeliveryNoteCtrl);
 
 /**
- * @openapi
+ * @swagger
  * /deliverynote/{id}/pdf:
  *   get:
- *     summary: Descargar el PDF del albarán
+ *     summary: Descargar el PDF generado del albarán
  *     tags: [Albaranes]
  *     security:
  *       - bearerAuth: []
@@ -163,20 +168,22 @@ router.patch('/:id/sign', uploadSignature, signDeliveryNoteCtrl);
  *           type: string
  *     responses:
  *       200:
- *         description: PDF generado
+ *         description: PDF del albarán
  *         content:
  *           application/pdf:
  *             schema:
  *               type: string
  *               format: binary
+ *       404:
+ *         description: Albarán no encontrado
  */
 router.get('/:id/pdf', getDeliveryNotePdfCtrl);
 
 /**
- * @openapi
+ * @swagger
  * /deliverynote/{id}:
  *   delete:
- *     summary: Eliminar un albarán (solo si no está firmado)
+ *     summary: Eliminar albarán (solo si no está firmado, solo admin)
  *     tags: [Albaranes]
  *     security:
  *       - bearerAuth: []
@@ -188,9 +195,13 @@ router.get('/:id/pdf', getDeliveryNotePdfCtrl);
  *           type: string
  *     responses:
  *       200:
- *         description: Eliminado correctamente
+ *         description: Albarán eliminado correctamente
  *       400:
  *         description: No se puede eliminar un albarán firmado
+ *       403:
+ *         description: Solo los admin pueden eliminar albaranes
+ *       404:
+ *         description: Albarán no encontrado
  */
 router.delete('/:id', checkRole('admin'), deleteDeliveryNoteCtrl);
 

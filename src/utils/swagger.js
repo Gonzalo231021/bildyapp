@@ -88,6 +88,29 @@ const options = {
                         },
                     ],
                 },
+                DeliveryNoteInput: {
+                    type: 'object',
+                    required: ['client', 'project', 'format'],
+                    properties: {
+                        client: { type: 'string', description: 'ID del cliente' },
+                        project: { type: 'string', description: 'ID del proyecto' },
+                        format: { type: 'string', enum: ['material', 'hours'] },
+                        material: { type: 'string', description: 'Descripción del material (si format=material)' },
+                        hours: { type: 'number', description: 'Horas totales (si format=hours)' },
+                        description: { type: 'string' },
+                        workdate: { type: 'string', format: 'date-time' },
+                        workers: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    name: { type: 'string' },
+                                    hours: { type: 'number' },
+                                },
+                            },
+                        },
+                    },
+                },
                 DeliveryNote: {
                     type: 'object',
                     properties: {
