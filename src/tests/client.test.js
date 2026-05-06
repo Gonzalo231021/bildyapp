@@ -136,4 +136,78 @@ describe('DELETE /api/client/:id', () => {
 
         expect(res.status).toBe(200);
     });
+
+    it('hard delete de un cliente', async () => {
+        const cliente = await Client.create({ user: userId, company: companyId, name: 'Hard Delete', cif: 'F11111111' });
+
+        const res = await request(app)
+            .delete(`/api/client/${cliente._id}?soft=false`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+    });
+
+    it('devuelve 404 al eliminar cliente inexistente', async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+
+        const res = await request(app)
+            .delete(`/api/client/${fakeId}`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(404);
+    });
+});
+
+describe('GET /api/client con filtro ?name=', () => {
+    it('filtra clientes por nombre', async () => {
+        await Client.create([
+            { user: userId, company: companyId, name: 'Constructora Norte SL', cif: 'G11111111' },
+            { user: userId, company: companyId, name: 'Reformas Sur SL', cif: 'H11111111' },
+        ]);
+
+        const res = await request(app)
+            .get('/api/client?name=norte')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.clients.some(c => c.name.toLowerCase().includes('norte'))).toBe(true);
+    });
+});
+
+describe('GET /api/client/archived y PATCH restore', () => {
+    it('lista clientes archivados', async () => {
+        const cliente = await Client.create({ user: userId, company: companyId, name: 'Archivado SA', cif: 'J11111111' });
+        await Client.softDeleteById(cliente._id, userId);
+
+        const res = await request(app)
+            .get('/api/client/archived')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.clients.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('restaura un cliente archivado', async () => {
+        const cliente = await Client.create({ user: userId, company: companyId, name: 'Para Restaurar SL', cif: 'K11111111' });
+        await Client.softDeleteById(cliente._id, userId);
+
+        const res = await request(app)
+            .patch(`/api/client/${cliente._id}/restore`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+    });
+});
+
+describe('Error 11000 — índice único', () => {
+    it('devuelve 409 al crear cliente con CIF duplicado en la misma empresa', async () => {
+        await Client.create({ user: userId, company: companyId, name: 'Primero SL', cif: 'Z99999999' });
+
+        const res = await request(app)
+            .post('/api/client')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ name: 'Segundo SL', cif: 'Z99999999' });
+
+        expect(res.status).toBe(409);
+    });
 });

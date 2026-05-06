@@ -123,6 +123,73 @@ describe('GET /api/deliverynote', () => {
         expect(res.status).toBe(200);
         expect(res.body.deliveryNotes).toHaveLength(2);
     });
+
+    it('filtra albaranes firmados con ?signed=true', async () => {
+        await DeliveryNote.create([
+            { user: userId, company: companyId, client: clientId, project: projectId, format: 'hours', hours: 4, signed: true, signatureUrl: 'http://x.com/img.jpg' },
+            { user: userId, company: companyId, client: clientId, project: projectId, format: 'hours', hours: 4, signed: false },
+        ]);
+
+        const res = await request(app)
+            .get('/api/deliverynote?signed=true')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.deliveryNotes.every(n => n.signed === true)).toBe(true);
+    });
+
+    it('filtra albaranes pendientes con ?signed=false', async () => {
+        await DeliveryNote.create([
+            { user: userId, company: companyId, client: clientId, project: projectId, format: 'hours', hours: 4, signed: true, signatureUrl: 'http://x.com/img.jpg' },
+            { user: userId, company: companyId, client: clientId, project: projectId, format: 'hours', hours: 4, signed: false },
+        ]);
+
+        const res = await request(app)
+            .get('/api/deliverynote?signed=false')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.deliveryNotes.every(n => n.signed === false)).toBe(true);
+    });
+
+    it('filtra albaranes por rango de fechas ?from=&to=', async () => {
+        await DeliveryNote.create([
+            { user: userId, company: companyId, client: clientId, project: projectId, format: 'hours', hours: 4, workdate: new Date('2026-03-10') },
+            { user: userId, company: companyId, client: clientId, project: projectId, format: 'hours', hours: 4, workdate: new Date('2026-05-10') },
+        ]);
+
+        const res = await request(app)
+            .get('/api/deliverynote?from=2026-03-01&to=2026-03-31')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.deliveryNotes).toHaveLength(1);
+    });
+
+    it('filtra por cliente con ?client=', async () => {
+        await DeliveryNote.create({ user: userId, company: companyId, client: clientId, project: projectId, format: 'hours', hours: 4 });
+
+        const res = await request(app)
+            .get(`/api/deliverynote?client=${clientId}`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.deliveryNotes.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('filtra por formato con ?format=material', async () => {
+        await DeliveryNote.create([
+            { user: userId, company: companyId, client: clientId, project: projectId, format: 'hours', hours: 4 },
+            { user: userId, company: companyId, client: clientId, project: projectId, format: 'material', material: 'Cemento' },
+        ]);
+
+        const res = await request(app)
+            .get('/api/deliverynote?format=material')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.deliveryNotes.every(n => n.format === 'material')).toBe(true);
+    });
 });
 
 describe('GET /api/deliverynote/:id', () => {

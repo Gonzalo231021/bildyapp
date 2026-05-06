@@ -125,6 +125,31 @@ describe('GET /api/project/:id', () => {
     });
 });
 
+describe('PUT /api/project/:id', () => {
+    it('actualiza un proyecto correctamente', async () => {
+        const project = await Project.create({ user: userId, company: companyId, client: clientId, name: 'Original', projectCode: 'UPD-001' });
+
+        const res = await request(app)
+            .put(`/api/project/${project._id}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send({ name: 'Actualizado', notes: 'Nuevas notas' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.project.name).toBe('Actualizado');
+    });
+
+    it('devuelve 404 al actualizar proyecto inexistente', async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+
+        const res = await request(app)
+            .put(`/api/project/${fakeId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send({ name: 'X' });
+
+        expect(res.status).toBe(404);
+    });
+});
+
 describe('DELETE /api/project/:id', () => {
     it('hace soft delete de un proyecto', async () => {
         const project = await Project.create({ user: userId, company: companyId, client: clientId, name: 'A Borrar', projectCode: 'DEL-001' });
@@ -136,6 +161,40 @@ describe('DELETE /api/project/:id', () => {
         expect(res.status).toBe(200);
     });
 
+    it('hard delete de un proyecto', async () => {
+        const project = await Project.create({ user: userId, company: companyId, client: clientId, name: 'Hard Delete', projectCode: 'HDL-001' });
+
+        const res = await request(app)
+            .delete(`/api/project/${project._id}`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+    });
+
+    it('devuelve 404 al borrar proyecto inexistente', async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+
+        const res = await request(app)
+            .delete(`/api/project/${fakeId}`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(404);
+    });
+});
+
+describe('GET /api/project/archived y PATCH restore', () => {
+    it('lista proyectos archivados', async () => {
+        const project = await Project.create({ user: userId, company: companyId, client: clientId, name: 'Archivado', projectCode: 'ARC-001' });
+        await Project.softDeleteById(project._id, userId);
+
+        const res = await request(app)
+            .get('/api/project/archived')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.projects.length).toBeGreaterThanOrEqual(1);
+    });
+
     it('restaura un proyecto archivado', async () => {
         const project = await Project.create({ user: userId, company: companyId, client: clientId, name: 'A Restaurar', projectCode: 'RES-001' });
         await Project.softDeleteById(project._id, userId);
@@ -145,5 +204,32 @@ describe('DELETE /api/project/:id', () => {
             .set('Authorization', `Bearer ${token}`);
 
         expect(res.status).toBe(200);
+    });
+});
+
+describe('GET /api/project con filtros', () => {
+    it('filtra proyectos activos con ?active=true', async () => {
+        await Project.create([
+            { user: userId, company: companyId, client: clientId, name: 'Activo 1', projectCode: 'ACT-001', active: true },
+            { user: userId, company: companyId, client: clientId, name: 'Activo 2', projectCode: 'ACT-002', active: true },
+        ]);
+
+        const res = await request(app)
+            .get('/api/project?active=true')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.projects.every(p => p.active === true)).toBe(true);
+    });
+
+    it('filtra por nombre con ?name=', async () => {
+        await Project.create({ user: userId, company: companyId, client: clientId, name: 'Reforma Interior', projectCode: 'NM-001' });
+
+        const res = await request(app)
+            .get('/api/project?name=reforma')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.projects.some(p => p.name.toLowerCase().includes('reforma'))).toBe(true);
     });
 });

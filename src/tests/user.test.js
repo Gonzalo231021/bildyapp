@@ -268,6 +268,29 @@ describe('PATCH /api/user/company', () => {
         expect(res.status).toBe(200);
         expect(res.body.user.role).toBe('guest');
     });
+
+    it('crea empresa freelance con datos del propio usuario', async () => {
+        const { token } = await makeUser({ nif: '87654321B', name: 'Autónomo' });
+
+        const res = await request(app)
+            .patch('/api/user/company')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ isFreelance: true });
+
+        expect(res.status).toBe(200);
+        expect(res.body.user.company).toBeDefined();
+    });
+
+    it('rechaza empresa freelance si el usuario no tiene NIF', async () => {
+        const { token } = await makeUser({ nif: undefined });
+
+        const res = await request(app)
+            .patch('/api/user/company')
+            .set('Authorization', `Bearer ${token}`)
+            .send({ isFreelance: true });
+
+        expect(res.status).toBe(400);
+    });
 });
 
 describe('POST /api/user/refresh', () => {
