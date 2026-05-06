@@ -1,20 +1,22 @@
 @baseUrl = http://localhost:3000
 
-# ─────────────────────────────────────────
-# ANTES DE EMPEZAR: necesitas un token válido con empresa asignada
-# Cópialo del último Login de auth.http y ponlo aquí
-# ─────────────────────────────────────────
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWZiOWZmOTBmOTM4MTdjMmJkZDJiYjQiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzgwOTgzMjYsImV4cCI6MTc3ODA5OTIyNn0.1bM2L3j8dL3suXh5ZpOAymo87K4eOzIs009HemEE3ms
+# ══════════════════════════════════════════════════════
+#  CLIENTES — requiere token con empresa asignada
+#  Si usaste "npm run seed", el token del login ya incluye empresa
+# ══════════════════════════════════════════════════════
 
-# Después de crear el cliente, copia su "_id" de la respuesta y ponlo aquí
-@clientId = 69fba1430f93817c2bdd2bca
+# Token obtenido del login (paso 5 de auth.http)
+@token = PEGA_EL_TOKEN_AQUI
 
-# ─────────────────────────────────────────
-# PASO 1: Crear cliente
-# Después: copia el "_id" del cliente y ponlo en @clientId arriba
-# ─────────────────────────────────────────
+# ID de un cliente — rellénalo después de crear uno en el paso 1
+@clientId = PEGA_EL_ID_DEL_CLIENTE
+
+# ──────────────────────────────────────────────────────
+# CRUD BÁSICO
+# ──────────────────────────────────────────────────────
 
 ### 1. Crear cliente
+# → Copia el "_id" de la respuesta y pégalo en @clientId arriba
 POST {{baseUrl}}/api/client
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -30,37 +32,52 @@ Authorization: Bearer {{token}}
   }
 }
 
-### 2. Listar clientes
+### 2. Listar todos los clientes
 GET {{baseUrl}}/api/client
 Authorization: Bearer {{token}}
 
-### 3. Buscar clientes por nombre
-GET {{baseUrl}}/api/client?search=lopez
+### 3. Buscar por nombre (búsqueda parcial, sin distinción de mayúsculas)
+GET {{baseUrl}}/api/client?name=lopez
 Authorization: Bearer {{token}}
 
-### 4. Obtener cliente por ID
+### 4. Búsqueda full-text (requiere índice de texto en BD)
+GET {{baseUrl}}/api/client?search=construcciones
+Authorization: Bearer {{token}}
+
+### 5. Paginación — página 2, 5 resultados por página
+GET {{baseUrl}}/api/client?page=2&limit=5
+Authorization: Bearer {{token}}
+
+### 6. Obtener cliente por ID
 GET {{baseUrl}}/api/client/{{clientId}}
 Authorization: Bearer {{token}}
 
-### 5. Actualizar cliente
+### 7. Actualizar cliente
 PUT {{baseUrl}}/api/client/{{clientId}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
   "name": "Construcciones López SL (actualizado)",
-  "cif": "A87654321",
-  "email": "nuevo@construcciones.com"
+  "email": "nuevo@lopezsl.com"
 }
 
-### 6. Archivar cliente (soft delete — se puede restaurar)
+# ──────────────────────────────────────────────────────
+# SOFT DELETE Y RESTAURACIÓN
+# ──────────────────────────────────────────────────────
+
+### 8. Archivar cliente (soft delete — se puede restaurar)
 DELETE {{baseUrl}}/api/client/{{clientId}}?soft=true
 Authorization: Bearer {{token}}
 
-### 7. Ver clientes archivados
+### 9. Ver clientes archivados
 GET {{baseUrl}}/api/client/archived
 Authorization: Bearer {{token}}
 
-### 8. Restaurar cliente archivado
+### 10. Restaurar cliente archivado
 PATCH {{baseUrl}}/api/client/{{clientId}}/restore
+Authorization: Bearer {{token}}
+
+### 11. Eliminar definitivamente (hard delete — no se puede recuperar)
+DELETE {{baseUrl}}/api/client/{{clientId}}
 Authorization: Bearer {{token}}

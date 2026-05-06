@@ -1,20 +1,19 @@
 @baseUrl = http://localhost:3000
 
-# ─────────────────────────────────────────
-# ANTES DE EMPEZAR: necesitas token y clientId del paso anterior
-# ─────────────────────────────────────────
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWZiOWZmOTBmOTM4MTdjMmJkZDJiYjQiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzgwOTgzMjYsImV4cCI6MTc3ODA5OTIyNn0.1bM2L3j8dL3suXh5ZpOAymo87K4eOzIs009HemEE3ms
-@clientId = 69fba1430f93817c2bdd2bca
+# ══════════════════════════════════════════════════════
+#  PROYECTOS — requiere token con empresa + un clienteId
+# ══════════════════════════════════════════════════════
 
-# Después de crear el proyecto, copia su "_id" aquí
-@projectId = 69fba1d90f93817c2bdd2bdd
+@token     = PEGA_EL_TOKEN_AQUI
+@clientId  = PEGA_EL_ID_DEL_CLIENTE   # de client.http paso 1
+@projectId = PEGA_EL_ID_DEL_PROYECTO  # de este fichero paso 1
 
-# ─────────────────────────────────────────
-# PASO 1: Crear proyecto (asociado al cliente)
-# Después: copia el "_id" del proyecto y ponlo en @projectId arriba
-# ─────────────────────────────────────────
+# ──────────────────────────────────────────────────────
+# CRUD BÁSICO
+# ──────────────────────────────────────────────────────
 
 ### 1. Crear proyecto
+# → Copia el "_id" de la respuesta y pégalo en @projectId arriba
 POST {{baseUrl}}/api/project
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -32,7 +31,7 @@ Authorization: Bearer {{token}}
   "notes": "Reforma completa planta baja"
 }
 
-### 2. Listar proyectos
+### 2. Listar todos los proyectos
 GET {{baseUrl}}/api/project
 Authorization: Bearer {{token}}
 
@@ -40,28 +39,44 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/api/project?active=true
 Authorization: Bearer {{token}}
 
-### 4. Obtener proyecto por ID
+### 4. Filtrar por nombre
+GET {{baseUrl}}/api/project?name=reforma
+Authorization: Bearer {{token}}
+
+### 5. Filtrar por cliente
+GET {{baseUrl}}/api/project?client={{clientId}}
+Authorization: Bearer {{token}}
+
+### 6. Obtener proyecto por ID
 GET {{baseUrl}}/api/project/{{projectId}}
 Authorization: Bearer {{token}}
 
-### 5. Actualizar proyecto
+### 7. Actualizar proyecto
 PUT {{baseUrl}}/api/project/{{projectId}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
   "name": "Reforma Oficina Central (v2)",
-  "notes": "Incluye pintura y electricidad"
+  "notes": "Incluye pintura, electricidad y climatización"
 }
 
-### 6. Archivar proyecto (soft delete)
+# ──────────────────────────────────────────────────────
+# SOFT DELETE Y RESTAURACIÓN
+# ──────────────────────────────────────────────────────
+
+### 8. Archivar proyecto (soft delete)
 DELETE {{baseUrl}}/api/project/{{projectId}}?soft=true
 Authorization: Bearer {{token}}
 
-### 7. Ver proyectos archivados
+### 9. Ver proyectos archivados
 GET {{baseUrl}}/api/project/archived
 Authorization: Bearer {{token}}
 
-### 8. Restaurar proyecto
+### 10. Restaurar proyecto archivado
 PATCH {{baseUrl}}/api/project/{{projectId}}/restore
+Authorization: Bearer {{token}}
+
+### 11. Eliminar definitivamente
+DELETE {{baseUrl}}/api/project/{{projectId}}
 Authorization: Bearer {{token}}

@@ -21,6 +21,7 @@ const run = async () => {
 
     const hashedPassword = await bcrypt.hash('Password1', 10);
 
+    // ── USUARIO ADMIN (propietario de la empresa) ─────────────────────
     const user = await User.create({
         email: 'demo@bildyapp.com',
         password: hashedPassword,
@@ -40,6 +41,43 @@ const run = async () => {
     });
 
     await User.findByIdAndUpdate(user._id, { company: company._id });
+
+    // ── USUARIOS ADICIONALES (misma empresa) ──────────────────────────
+    // guest1: encargado de obra (rol guest — puede operar pero no invitar)
+    await User.create({
+        email: 'encargado@bildyapp.com',
+        password: hashedPassword,
+        name: 'Carlos',
+        lastName: 'Ruiz',
+        nif: '11223344B',
+        role: 'guest',
+        status: 'verified',
+        company: company._id,
+    });
+
+    // guest2: administrativo
+    await User.create({
+        email: 'admin2@bildyapp.com',
+        password: hashedPassword,
+        name: 'Laura',
+        lastName: 'Sánchez',
+        nif: '55667788C',
+        role: 'guest',
+        status: 'verified',
+        company: company._id,
+    });
+
+    // pending: usuario registrado pero sin verificar email (para demo de validación)
+    await User.create({
+        email: 'nuevo@bildyapp.com',
+        password: hashedPassword,
+        name: 'Pendiente',
+        lastName: 'Verificación',
+        role: 'guest',
+        status: 'pending',
+        verificationCode: '123456',
+        verificationAttempts: 3,
+    });
 
     const c = { user: user._id, company: company._id };
 
@@ -485,14 +523,19 @@ const run = async () => {
     const totalNotes = 34;
     const signed = 18;
     console.log('\n✓ Seed completado con éxito');
-    console.log('─────────────────────────────────────────');
-    console.log('  Usuario:   demo@bildyapp.com');
-    console.log('  Password:  Password1');
+    console.log('═══════════════════════════════════════════════');
+    console.log('  USUARIOS DE PRUEBA (todos con password: Password1)');
+    console.log('───────────────────────────────────────────────');
+    console.log('  demo@bildyapp.com      → admin  (propietario)');
+    console.log('  encargado@bildyapp.com → guest  (misma empresa)');
+    console.log('  admin2@bildyapp.com    → guest  (misma empresa)');
+    console.log('  nuevo@bildyapp.com     → pending (sin verificar, código: 123456)');
+    console.log('───────────────────────────────────────────────');
     console.log('  Empresa:   BildyCorp SL (CIF B12345678)');
     console.log(`  Clientes:  ${clients.length}`);
     console.log(`  Proyectos: ${projects.length}`);
     console.log(`  Albaranes: ${totalNotes} (${signed} firmados, ${totalNotes - signed} pendientes)`);
-    console.log('─────────────────────────────────────────\n');
+    console.log('═══════════════════════════════════════════════\n');
 
     await mongoose.disconnect();
 };

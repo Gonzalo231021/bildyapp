@@ -1,13 +1,31 @@
 @baseUrl = http://localhost:3000
 
-# ─────────────────────────────────────────
-# PASO 1: Registrar usuario
-# Después: copia el "token" de la respuesta y ponlo en @token aquí abajo
-# También abre Mailtrap (sandbox.smtp.mailtrap.io → My Sandbox) y busca el email con el código
-# ─────────────────────────────────────────
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWZiOWZmOTBmOTM4MTdjMmJkZDJiYjQiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzgwOTgzMjYsImV4cCI6MTc3ODA5OTIyNn0.1bM2L3j8dL3suXh5ZpOAymo87K4eOzIs009HemEE3ms
+# ══════════════════════════════════════════════════════
+#  FLUJO COMPLETO DE AUTENTICACIÓN — ejecutar en orden
+# ══════════════════════════════════════════════════════
+#
+#  PASO 1 → Registrar usuario          (copia el token de la respuesta)
+#  PASO 2 → Validar email              (código llega a Mailtrap)
+#  PASO 3 → Añadir datos personales    (nombre, apellidos, NIF)
+#  PASO 4 → Crear empresa              (necesario antes de crear clientes)
+#  PASO 5 → Login                      (obtén el token definitivo con empresa)
+#  PASO 6 → Ver perfil                 (confirma que todo está correcto)
+#
+#  ⚡ ATAJO: Si ya tienes datos en BD con "npm run seed",
+#     ve directamente al PASO 5 con demo@bildyapp.com / Password1
+# ══════════════════════════════════════════════════════
 
-### 1. Registrar usuario
+# Pega aquí el token después del registro o login
+@token = PEGA_EL_TOKEN_AQUI
+
+# ──────────────────────────────────────────────────────
+# PASO 1 — Registrar usuario
+# Respuesta: { token, refreshToken, user }
+# → Copia "token" y pégalo en @token arriba
+# → Abre Mailtrap (sandbox.smtp.mailtrap.io) para ver el código de 6 dígitos
+# ──────────────────────────────────────────────────────
+
+### 1. Registrar
 POST {{baseUrl}}/api/user/register
 Content-Type: application/json
 
@@ -16,41 +34,26 @@ Content-Type: application/json
   "password": "Password1"
 }
 
-# ─────────────────────────────────────────
-# PASO 2: Validar email
-# Abre Mailtrap → My Sandbox → verás el email con el código de 6 dígitos
-# Pon el código abajo y ejecuta
-# ─────────────────────────────────────────
+# ──────────────────────────────────────────────────────
+# PASO 2 — Validar email
+# Sustituye el código por el que recibes en Mailtrap
+# Respuesta: { mensaje: "Email verificado correctamente" }
+# ──────────────────────────────────────────────────────
 
-### 2. Validar email (código llega a Mailtrap)
+### 2. Validar email
 PUT {{baseUrl}}/api/user/validation
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "code": "406390"
+  "code": "CODIGO_DE_MAILTRAP"
 }
 
-# ─────────────────────────────────────────
-# PASO 3: Login
-# Después: copia el "token" de la respuesta y actualiza @token arriba
-# (el del registro caduca en 15 min, este será el token definitivo)
-# ─────────────────────────────────────────
+# ──────────────────────────────────────────────────────
+# PASO 3 — Datos personales (necesario para empresa freelance)
+# ──────────────────────────────────────────────────────
 
-### 3. Login
-POST {{baseUrl}}/api/user/login
-Content-Type: application/json
-
-{
-  "email": "demo@bildyapp.com",
-  "password": "Password1"
-}
-
-# ─────────────────────────────────────────
-# PASO 4: Datos personales (necesario antes de crear empresa)
-# ─────────────────────────────────────────
-
-### 4. Actualizar datos personales
+### 3. Añadir datos personales
 PUT {{baseUrl}}/api/user/register
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -61,13 +64,13 @@ Authorization: Bearer {{token}}
   "nif": "12345678A"
 }
 
-# ─────────────────────────────────────────
-# PASO 5: Crear empresa
-# OJO: address es un objeto, no un string
-# Después: haz Login de nuevo y actualiza @token (el token ahora incluye la empresa)
-# ─────────────────────────────────────────
+# ──────────────────────────────────────────────────────
+# PASO 4 — Crear empresa
+# Si el CIF ya existe en BD, te unes como "guest"
+# Si es nuevo, quedas como "admin"
+# ──────────────────────────────────────────────────────
 
-### 5. Configurar empresa
+### 4a. Crear empresa normal
 PATCH {{baseUrl}}/api/user/company
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -83,8 +86,23 @@ Authorization: Bearer {{token}}
   }
 }
 
-### 6. Login de nuevo (para obtener token con empresa ya asignada)
-# Después: copia el token y actualiza @token arriba — este es el token definitivo
+### 4b. Crear empresa como autónomo (usa tu nombre y NIF del paso 3)
+PATCH {{baseUrl}}/api/user/company
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "isFreelance": true
+}
+
+# ──────────────────────────────────────────────────────
+# PASO 5 — Login
+# ¡IMPORTANTE! Después de crear la empresa hay que volver a hacer login
+# para que el token incluya el ID de empresa.
+# → Copia el nuevo "token" en @token arriba
+# ──────────────────────────────────────────────────────
+
+### 5. Login (token definitivo)
 POST {{baseUrl}}/api/user/login
 Content-Type: application/json
 
@@ -93,9 +111,40 @@ Content-Type: application/json
   "password": "Password1"
 }
 
-### 7. Ver perfil completo (para confirmar que todo está bien)
+# ──────────────────────────────────────────────────────
+# PASO 6 — Verificar perfil
+# Confirma que tienes: name, company, role: "admin"
+# ──────────────────────────────────────────────────────
+
+### 6. Ver perfil completo
 GET {{baseUrl}}/api/user
 Authorization: Bearer {{token}}
 
-### 8. Health check (sin token)
+# ──────────────────────────────────────────────────────
+# OTROS — Operaciones adicionales
+# ──────────────────────────────────────────────────────
+
+### Renovar token (cuando caduca el de 15 min)
+POST {{baseUrl}}/api/user/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "PEGA_AQUI_EL_REFRESH_TOKEN"
+}
+
+### Cambiar contraseña
+PUT {{baseUrl}}/api/user/password
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "currentPassword": "Password1",
+  "newPassword": "NuevoPassword1"
+}
+
+### Cerrar sesión
+POST {{baseUrl}}/api/user/logout
+Authorization: Bearer {{token}}
+
+### Health check (sin token)
 GET {{baseUrl}}/health

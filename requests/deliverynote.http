@@ -1,22 +1,24 @@
 @baseUrl = http://localhost:3000
 
-# ─────────────────────────────────────────
-# ANTES DE EMPEZAR: necesitas token, clientId y projectId de los pasos anteriores
-# ─────────────────────────────────────────
-@token = PON_AQUI_EL_TOKEN_CON_EMPRESA
-@clientId = PON_AQUI_EL_ID_DEL_CLIENTE
-@projectId = PON_AQUI_EL_ID_DEL_PROYECTO
+# ══════════════════════════════════════════════════════
+#  ALBARANES — requiere token + clienteId + proyectoId
+#
+#  Si usaste "npm run seed", la BD ya tiene datos.
+#  Haz login con demo@bildyapp.com / Password1 y obtén
+#  los IDs desde GET /api/client y GET /api/project
+# ══════════════════════════════════════════════════════
 
-# Después de crear el albarán, copia su "_id" aquí
-@noteId = PON_AQUI_EL_ID_DEL_ALBARAN
+@token     = PEGA_EL_TOKEN_AQUI
+@clientId  = PEGA_EL_ID_DEL_CLIENTE
+@projectId = PEGA_EL_ID_DEL_PROYECTO
+@noteId    = PEGA_EL_ID_DEL_ALBARAN   # de este fichero paso 1 ó 2
 
-# ─────────────────────────────────────────
-# PASO 1: Crear albarán de horas
-# workers es array de objetos {name, hours}
-# Después: copia el "_id" y ponlo en @noteId arriba
-# ─────────────────────────────────────────
+# ──────────────────────────────────────────────────────
+# CREAR ALBARANES
+# ──────────────────────────────────────────────────────
 
 ### 1. Crear albarán de HORAS
+# → Copia el "_id" de la respuesta y pégalo en @noteId arriba
 POST {{baseUrl}}/api/deliverynote
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -43,39 +45,65 @@ Authorization: Bearer {{token}}
   "client": "{{clientId}}",
   "project": "{{projectId}}",
   "format": "material",
-  "material": "Cable eléctrico 100m + canaletas",
-  "description": "Material para instalación",
+  "material": "Cable eléctrico NYM 3×2.5mm 200m + canaletas PVC + caja Schneider",
+  "description": "Material instalación eléctrica",
   "workdate": "2026-05-07"
 }
 
-### 3. Listar albaranes
+# ──────────────────────────────────────────────────────
+# LISTAR Y FILTRAR
+# ──────────────────────────────────────────────────────
+
+### 3. Listar todos los albaranes
 GET {{baseUrl}}/api/deliverynote
 Authorization: Bearer {{token}}
 
-### 4. Filtrar por cliente
+### 4. Solo albaranes FIRMADOS
+GET {{baseUrl}}/api/deliverynote?signed=true
+Authorization: Bearer {{token}}
+
+### 5. Solo albaranes PENDIENTES de firma
+GET {{baseUrl}}/api/deliverynote?signed=false
+Authorization: Bearer {{token}}
+
+### 6. Filtrar por rango de fechas
+GET {{baseUrl}}/api/deliverynote?from=2026-04-01&to=2026-05-07
+Authorization: Bearer {{token}}
+
+### 7. Filtrar por cliente
 GET {{baseUrl}}/api/deliverynote?client={{clientId}}
 Authorization: Bearer {{token}}
 
-### 5. Obtener albarán por ID (con datos de cliente y proyecto)
+### 8. Filtrar por formato (material u hours)
+GET {{baseUrl}}/api/deliverynote?format=hours
+Authorization: Bearer {{token}}
+
+### 9. Combinar filtros — pendientes de firma de un cliente concreto
+GET {{baseUrl}}/api/deliverynote?client={{clientId}}&signed=false
+Authorization: Bearer {{token}}
+
+### 10. Obtener albarán por ID (con datos de cliente y proyecto)
 GET {{baseUrl}}/api/deliverynote/{{noteId}}
 Authorization: Bearer {{token}}
 
-# ─────────────────────────────────────────
-# PASO 6: Firmar albarán
-# OJO: esto NO funciona desde REST Client porque necesita multipart/form-data con imagen
-# Usar Postman o Thunder Client:
-#   - Method: PATCH
-#   - URL: {{baseUrl}}/api/deliverynote/{{noteId}}/sign
-#   - Header: Authorization: Bearer {{token}}
-#   - Body: form-data → campo "image" → seleccionar un archivo PNG/JPG
-# La firma se sube a Cloudinary automáticamente
-# ─────────────────────────────────────────
+# ──────────────────────────────────────────────────────
+# FIRMA — requiere Postman o Thunder Client (no REST Client)
+#   Method: PATCH
+#   URL:    {{baseUrl}}/api/deliverynote/{{noteId}}/sign
+#   Header: Authorization: Bearer {{token}}
+#   Body:   form-data → campo "image" → selecciona un PNG o JPG
+#   Resultado: la firma se sube a Cloudinary y el albarán queda firmado
+# ──────────────────────────────────────────────────────
 
-### 7. Descargar PDF del albarán (genera el PDF con todos los datos)
-# Si está firmado, el PDF incluye la imagen de la firma desde Cloudinary
+# ──────────────────────────────────────────────────────
+# PDF Y ELIMINACIÓN
+# ──────────────────────────────────────────────────────
+
+### 11. Descargar PDF del albarán
+# Si está firmado, el PDF incluye la imagen de la firma
 GET {{baseUrl}}/api/deliverynote/{{noteId}}/pdf
 Authorization: Bearer {{token}}
 
-### 8. Eliminar albarán (solo funciona si NO está firmado)
+### 12. Eliminar albarán (solo funciona si NO está firmado)
 DELETE {{baseUrl}}/api/deliverynote/{{noteId}}
 Authorization: Bearer {{token}}
