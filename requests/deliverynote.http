@@ -1,0 +1,60 @@
+@baseUrl = http://localhost:3000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.tu_token_aqui
+@noteId = 664a1b2c3d4e5f6789012347
+@clientId = 664a1b2c3d4e5f6789012345
+@projectId = 664a1b2c3d4e5f6789012346
+
+### Crear albarán de horas
+POST {{baseUrl}}/api/deliverynote
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "client": "{{clientId}}",
+  "project": "{{projectId}}",
+  "format": "hours",
+  "hours": 8,
+  "description": "Instalación eléctrica planta 2",
+  "workdate": "2026-05-06",
+  "workers": ["Juan García", "Pedro López"]
+}
+
+### Crear albarán de material
+POST {{baseUrl}}/api/deliverynote
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "client": "{{clientId}}",
+  "project": "{{projectId}}",
+  "format": "material",
+  "material": "Cables eléctricos 100m",
+  "description": "Material para instalación",
+  "workdate": "2026-05-06"
+}
+
+### Listar albaranes
+GET {{baseUrl}}/api/deliverynote
+Authorization: Bearer {{token}}
+
+### Listar albaranes con filtros
+GET {{baseUrl}}/api/deliverynote?client={{clientId}}&format=hours
+Authorization: Bearer {{token}}
+
+### Obtener albarán por ID
+GET {{baseUrl}}/api/deliverynote/{{noteId}}
+Authorization: Bearer {{token}}
+
+### Firmar albarán (multipart — usar con fichero de imagen)
+# En VS Code REST Client no se puede enviar multipart directamente,
+# usar Postman o curl: curl -X PATCH url -H "Authorization: Bearer token" -F "image=@firma.png"
+PATCH {{baseUrl}}/api/deliverynote/{{noteId}}/sign
+Authorization: Bearer {{token}}
+
+### Descargar PDF del albarán
+GET {{baseUrl}}/api/deliverynote/{{noteId}}/pdf
+Authorization: Bearer {{token}}
+
+### Eliminar albarán (solo si no está firmado)
+DELETE {{baseUrl}}/api/deliverynote/{{noteId}}
+Authorization: Bearer {{token}}

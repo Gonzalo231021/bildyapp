@@ -1,0 +1,59 @@
+@baseUrl = http://localhost:3000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.tu_token_aqui
+@clientId = 664a1b2c3d4e5f6789012345
+
+### Crear cliente
+POST {{baseUrl}}/api/client
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Empresa Cliente SA",
+  "cif": "A87654321",
+  "email": "cliente@empresa.com",
+  "address": {
+    "street": "Calle Ejemplo 10",
+    "city": "Madrid",
+    "province": "Madrid",
+    "postalCode": "28001",
+    "country": "España"
+  }
+}
+
+### Listar clientes
+GET {{baseUrl}}/api/client
+Authorization: Bearer {{token}}
+
+### Listar clientes con búsqueda y paginación
+GET {{baseUrl}}/api/client?search=empresa&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### Obtener cliente por ID
+GET {{baseUrl}}/api/client/{{clientId}}
+Authorization: Bearer {{token}}
+
+### Actualizar cliente
+PUT {{baseUrl}}/api/client/{{clientId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Empresa Cliente Actualizada SA",
+  "email": "nuevo@empresa.com"
+}
+
+### Archivar cliente (soft delete)
+DELETE {{baseUrl}}/api/client/{{clientId}}?soft=true
+Authorization: Bearer {{token}}
+
+### Eliminar cliente (hard delete)
+DELETE {{baseUrl}}/api/client/{{clientId}}
+Authorization: Bearer {{token}}
+
+### Listar clientes archivados
+GET {{baseUrl}}/api/client/archived
+Authorization: Bearer {{token}}
+
+### Restaurar cliente
+PATCH {{baseUrl}}/api/client/{{clientId}}/restore
+Authorization: Bearer {{token}}

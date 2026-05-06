@@ -1,0 +1,56 @@
+@baseUrl = http://localhost:3000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.tu_token_aqui
+@projectId = 664a1b2c3d4e5f6789012346
+@clientId = 664a1b2c3d4e5f6789012345
+
+### Crear proyecto
+POST {{baseUrl}}/api/project
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Reforma Oficinas",
+  "projectCode": "PROY-001",
+  "client": "{{clientId}}",
+  "address": "Calle Trabajo 5, Madrid",
+  "email": "obra@empresa.com",
+  "notes": "Reforma completa de planta 2"
+}
+
+### Listar proyectos
+GET {{baseUrl}}/api/project
+Authorization: Bearer {{token}}
+
+### Listar proyectos con filtros
+GET {{baseUrl}}/api/project?name=reforma&active=true&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### Obtener proyecto por ID
+GET {{baseUrl}}/api/project/{{projectId}}
+Authorization: Bearer {{token}}
+
+### Actualizar proyecto
+PUT {{baseUrl}}/api/project/{{projectId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Reforma Oficinas (actualizado)",
+  "notes": "Incluye pintura"
+}
+
+### Archivar proyecto (soft delete)
+DELETE {{baseUrl}}/api/project/{{projectId}}?soft=true
+Authorization: Bearer {{token}}
+
+### Eliminar proyecto (hard delete)
+DELETE {{baseUrl}}/api/project/{{projectId}}
+Authorization: Bearer {{token}}
+
+### Listar proyectos archivados
+GET {{baseUrl}}/api/project/archived
+Authorization: Bearer {{token}}
+
+### Restaurar proyecto
+PATCH {{baseUrl}}/api/project/{{projectId}}/restore
+Authorization: Bearer {{token}}

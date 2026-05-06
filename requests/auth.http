@@ -1,0 +1,71 @@
+@baseUrl = http://localhost:3000
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.tu_token_aqui
+
+### Registrar usuario
+POST {{baseUrl}}/api/user/register
+Content-Type: application/json
+
+{
+  "email": "gonzalo@ejemplo.com",
+  "password": "Password1"
+}
+
+### Validar email
+PUT {{baseUrl}}/api/user/validate
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "code": "123456"
+}
+
+### Login
+POST {{baseUrl}}/api/user/login
+Content-Type: application/json
+
+{
+  "email": "gonzalo@ejemplo.com",
+  "password": "Password1"
+}
+
+### Obtener usuario autenticado
+GET {{baseUrl}}/api/user
+Authorization: Bearer {{token}}
+
+### Actualizar datos personales
+PUT {{baseUrl}}/api/user/register
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Gonzalo",
+  "lastName": "Martínez",
+  "nif": "12345678A"
+}
+
+### Configurar empresa
+PATCH {{baseUrl}}/api/user/company
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "isFreelance": false,
+  "name": "Mi Empresa SL",
+  "cif": "B12345678",
+  "address": "Calle Mayor 1, Madrid"
+}
+
+### Refresh token
+POST {{baseUrl}}/api/user/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "tu_refresh_token_aqui"
+}
+
+### Logout
+POST {{baseUrl}}/api/user/logout
+Authorization: Bearer {{token}}
+
+### Health check
+GET {{baseUrl}}/health
