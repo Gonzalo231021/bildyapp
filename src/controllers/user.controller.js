@@ -4,6 +4,7 @@ import { encrypt, compare } from '../utils/handlePassword.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/handleJwt.js';
 import AppError from '../utils/AppError.js';
 import notificationService from '../services/notification.service.js';
+import { sendVerificationEmail } from '../services/mail.service.js';
 
 export const registerCtrl = async (req, res) => {
     const { email, password } = req.body;
@@ -34,6 +35,8 @@ export const registerCtrl = async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken();
     await User.findByIdAndUpdate(user._id, { refreshToken });
+
+    sendVerificationEmail(user.email, verificationCode).catch(() => {});
 
     notificationService.emit('user:registered', { email: user.email });
 
