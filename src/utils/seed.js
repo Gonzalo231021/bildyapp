@@ -21,7 +21,14 @@ const run = async () => {
 
     const hashedPassword = await bcrypt.hash('Password1', 10);
 
-    // ── USUARIO ADMIN (propietario de la empresa) ─────────────────────
+    // IDs fijos — los .http los usan directamente después del seed
+    const COMPANY_ID  = new mongoose.Types.ObjectId('aaa000000000000000000001');
+    const CLIENT_ID   = new mongoose.Types.ObjectId('bbb000000000000000000001');
+    const PROJECT_ID  = new mongoose.Types.ObjectId('ccc000000000000000000001');
+    const NOTE_ID     = new mongoose.Types.ObjectId('ddd000000000000000000001');
+    const COMPANY2_ID = new mongoose.Types.ObjectId('aaa000000000000000000002');
+
+    // ── BILDYCORP SL — empresa principal ─────────────────────────────
     const user = await User.create({
         email: 'demo@bildyapp.com',
         password: hashedPassword,
@@ -33,6 +40,7 @@ const run = async () => {
     });
 
     const company = await Company.create({
+        _id: COMPANY_ID,
         owner: user._id,
         name: 'BildyCorp SL',
         cif: 'B12345678',
@@ -42,8 +50,7 @@ const run = async () => {
 
     await User.findByIdAndUpdate(user._id, { company: company._id });
 
-    // ── USUARIOS ADICIONALES (misma empresa) ──────────────────────────
-    // guest1: encargado de obra (rol guest — puede operar pero no invitar)
+    // Usuarios adicionales BildyCorp
     await User.create({
         email: 'encargado@bildyapp.com',
         password: hashedPassword,
@@ -55,7 +62,6 @@ const run = async () => {
         company: company._id,
     });
 
-    // guest2: administrativo
     await User.create({
         email: 'admin2@bildyapp.com',
         password: hashedPassword,
@@ -67,7 +73,6 @@ const run = async () => {
         company: company._id,
     });
 
-    // pending: usuario registrado pero sin verificar email (para demo de validación)
     await User.create({
         email: 'nuevo@bildyapp.com',
         password: hashedPassword,
@@ -79,11 +84,77 @@ const run = async () => {
         verificationAttempts: 3,
     });
 
+    // ── INTELIGENCIA MAXIMA SL — empresa de los compañeros ───────────
+    const company2 = await Company.create({
+        _id: COMPANY2_ID,
+        owner: user._id,
+        name: 'Inteligencia Maxima SL',
+        cif: 'X99887766',
+        isFreelance: false,
+        address: { street: 'Calle de la Innovación 42', city: 'Madrid', postal: '28020' },
+    });
+
+    const victorUser = await User.create({
+        email: 'victor@inteligenciamaxima.com',
+        password: hashedPassword,
+        name: 'Victor Manuel',
+        lastName: 'Peiro',
+        nif: 'P1111111A',
+        role: 'admin',
+        status: 'verified',
+        company: company2._id,
+    });
+    await Company.findByIdAndUpdate(company2._id, { owner: victorUser._id });
+
+    await User.create([
+        {
+            email: 'diego@inteligenciamaxima.com',
+            password: hashedPassword,
+            name: 'Diego Jaime',
+            lastName: 'La Vega',
+            nif: 'P2222222B',
+            role: 'guest',
+            status: 'verified',
+            company: company2._id,
+        },
+        {
+            email: 'pablo@inteligenciamaxima.com',
+            password: hashedPassword,
+            name: 'Pablo',
+            lastName: 'González',
+            nif: 'P3333333C',
+            role: 'guest',
+            status: 'verified',
+            company: company2._id,
+        },
+        {
+            email: 'ana@inteligenciamaxima.com',
+            password: hashedPassword,
+            name: 'Ana',
+            lastName: 'Sierra',
+            nif: 'P4444444D',
+            role: 'guest',
+            status: 'verified',
+            company: company2._id,
+        },
+        {
+            email: 'juanfelipe@inteligenciamaxima.com',
+            password: hashedPassword,
+            name: 'Juan Felipe',
+            lastName: 'García',
+            nif: 'P5555555E',
+            role: 'guest',
+            status: 'verified',
+            company: company2._id,
+        },
+    ]);
+
     const c = { user: user._id, company: company._id };
 
     // ── CLIENTES ──────────────────────────────────────────────────────
     const clients = await Client.create([
         {
+            _id: CLIENT_ID,
             ...c,
             name: 'Construcciones López SL',
             cif: 'A87654321',
@@ -138,6 +209,7 @@ const run = async () => {
     const projects = await Project.create([
         // López (cliente 0)
         {
+            _id: PROJECT_ID,
             ...c, client: clients[0]._id,
             name: 'Reforma Oficina Central',
             projectCode: 'PROY-001',
@@ -237,6 +309,7 @@ const run = async () => {
     await DeliveryNote.create([
         // PROY-001 Reforma Oficina Central (firmados — trabajo cerrado)
         {
+            _id: NOTE_ID,
             ...c, client: clients[0]._id, project: projects[0]._id, ...sig,
             format: 'hours', hours: 8,
             description: 'Instalación eléctrica planta baja — cuadro de distribución y cableado',
@@ -523,19 +596,28 @@ const run = async () => {
     const totalNotes = 34;
     const signed = 18;
     console.log('\n✓ Seed completado con éxito');
-    console.log('═══════════════════════════════════════════════');
-    console.log('  USUARIOS DE PRUEBA (todos con password: Password1)');
-    console.log('───────────────────────────────────────────────');
-    console.log('  demo@bildyapp.com      → admin  (propietario)');
-    console.log('  encargado@bildyapp.com → guest  (misma empresa)');
-    console.log('  admin2@bildyapp.com    → guest  (misma empresa)');
-    console.log('  nuevo@bildyapp.com     → pending (sin verificar, código: 123456)');
-    console.log('───────────────────────────────────────────────');
-    console.log('  Empresa:   BildyCorp SL (CIF B12345678)');
-    console.log(`  Clientes:  ${clients.length}`);
-    console.log(`  Proyectos: ${projects.length}`);
-    console.log(`  Albaranes: ${totalNotes} (${signed} firmados, ${totalNotes - signed} pendientes)`);
-    console.log('═══════════════════════════════════════════════\n');
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('  USUARIOS (todos con password: Password1)');
+    console.log('───────────────────────────────────────────────────────────────');
+    console.log('  BildyCorp SL:');
+    console.log('    demo@bildyapp.com            → admin  (propietario)');
+    console.log('    encargado@bildyapp.com        → guest');
+    console.log('    admin2@bildyapp.com           → guest');
+    console.log('    nuevo@bildyapp.com            → pending (código: 123456)');
+    console.log('  Inteligencia Maxima SL:');
+    console.log('    victor@inteligenciamaxima.com → admin');
+    console.log('    diego@inteligenciamaxima.com  → guest');
+    console.log('    pablo@inteligenciamaxima.com  → guest');
+    console.log('    ana@inteligenciamaxima.com    → guest');
+    console.log('    juanfelipe@inteligenciamaxima.com → guest');
+    console.log('───────────────────────────────────────────────────────────────');
+    console.log('  IDs fijos para los .http:');
+    console.log(`    clientId:   ${CLIENT_ID}`);
+    console.log(`    projectId:  ${PROJECT_ID}`);
+    console.log(`    noteId:     ${NOTE_ID}`);
+    console.log('───────────────────────────────────────────────────────────────');
+    console.log(`  Clientes: ${clients.length}  Proyectos: ${projects.length}  Albaranes: ${totalNotes} (${signed} firmados)`);
+    console.log('═══════════════════════════════════════════════════════════════\n');
 
     await mongoose.disconnect();
 };

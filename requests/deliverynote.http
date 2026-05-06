@@ -10,8 +10,8 @@
 
 @token     = PEGA_EL_TOKEN_AQUI
 @clientId  = PEGA_EL_ID_DEL_CLIENTE
-@projectId = PEGA_EL_ID_DEL_PROYECTO
-@noteId    = PEGA_EL_ID_DEL_ALBARAN   # de este fichero paso 1 ó 2
+@projectId = ccc000000000000000000001
+@noteId    = ddd000000000000000000001
 
 # ──────────────────────────────────────────────────────
 # CREAR ALBARANES

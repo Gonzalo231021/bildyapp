@@ -9,7 +9,7 @@
 @token = PEGA_EL_TOKEN_AQUI
 
 # ID de un cliente — rellénalo después de crear uno en el paso 1
-@clientId = PEGA_EL_ID_DEL_CLIENTE
+@clientId = bbb000000000000000000001
 
 # ──────────────────────────────────────────────────────
 # CRUD BÁSICO

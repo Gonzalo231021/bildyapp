@@ -6,7 +6,7 @@
 
 @token     = PEGA_EL_TOKEN_AQUI
 @clientId  = PEGA_EL_ID_DEL_CLIENTE   # de client.http paso 1
-@projectId = PEGA_EL_ID_DEL_PROYECTO  # de este fichero paso 1
+@projectId = ccc000000000000000000001  # de este fichero paso 1
 
 # ──────────────────────────────────────────────────────
 # CRUD BÁSICO
