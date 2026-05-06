@@ -32,12 +32,18 @@ export const createDeliveryNoteCtrl = async (req, res) => {
 
 export const getDeliveryNotesCtrl = async (req, res) => {
     const user = req.user;
-    const { project, client, format } = req.query;
+    const { project, client, format, signed, from, to } = req.query;
 
     const filter = { company: user.company };
     if (project) filter.project = project;
     if (client) filter.client = client;
     if (format) filter.format = format;
+    if (signed !== undefined) filter.signed = signed === 'true';
+    if (from || to) {
+        filter.workdate = {};
+        if (from) filter.workdate.$gte = new Date(from);
+        if (to) filter.workdate.$lte = new Date(to);
+    }
 
     const deliveryNotes = await DeliveryNote.find(filter)
         .populate('client', 'name cif')
