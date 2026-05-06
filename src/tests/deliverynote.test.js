@@ -175,3 +175,71 @@ describe('DELETE /api/deliverynote/:id', () => {
         expect(res.status).toBe(400);
     });
 });
+
+describe('GET /api/deliverynote/:id/pdf', () => {
+    it('genera el PDF de un albarán de horas', async () => {
+        const note = await DeliveryNote.create({
+            user: userId, company: companyId, client: clientId, project: projectId,
+            format: 'hours', hours: 8, description: 'Jornada test',
+            workdate: new Date('2026-05-07'),
+            workers: [{ name: 'Pepe García', hours: 8 }],
+        });
+
+        const res = await request(app)
+            .get(`/api/deliverynote/${note._id}/pdf`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toMatch(/pdf/);
+    });
+
+    it('genera el PDF de un albarán de material', async () => {
+        const note = await DeliveryNote.create({
+            user: userId, company: companyId, client: clientId, project: projectId,
+            format: 'material', material: 'Cemento x 10 sacos',
+            workdate: new Date('2026-05-07'),
+        });
+
+        const res = await request(app)
+            .get(`/api/deliverynote/${note._id}/pdf`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(200);
+    });
+
+    it('devuelve 404 para albarán inexistente', async () => {
+        const fakeId = new mongoose.Types.ObjectId();
+
+        const res = await request(app)
+            .get(`/api/deliverynote/${fakeId}/pdf`)
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(404);
+    });
+});
+
+describe('Manejo de errores de base de datos', () => {
+    it('devuelve 400 para ObjectId inválido en deliverynote', async () => {
+        const res = await request(app)
+            .get('/api/deliverynote/id-no-valido')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(400);
+    });
+
+    it('devuelve 400 para ObjectId inválido en cliente', async () => {
+        const res = await request(app)
+            .get('/api/client/id-no-valido')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(400);
+    });
+
+    it('devuelve 400 para ObjectId inválido en proyecto', async () => {
+        const res = await request(app)
+            .get('/api/project/id-no-valido')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(res.status).toBe(400);
+    });
+});

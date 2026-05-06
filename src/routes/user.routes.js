@@ -36,6 +36,7 @@ const authLimiter = rateLimit({
     message: { error: true, mensaje: 'Demasiados intentos, espera 15 minutos antes de volver a intentarlo' },
     standardHeaders: true,
     legacyHeaders: false,
+    skip: () => process.env.NODE_ENV === 'test',
 });
 
 /**
