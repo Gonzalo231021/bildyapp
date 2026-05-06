@@ -1,4 +1,5 @@
 import { ZodError } from 'zod';
+import { notifySlack } from '../services/slack.service.js';
 
 export const errorHandler = (err, req, res, next) => {
     if (err.isOperational) {
@@ -29,6 +30,8 @@ export const errorHandler = (err, req, res, next) => {
         const detalles = Object.values(err.errors).map(e => ({ campo: e.path, mensaje: e.message }));
         return res.status(400).json({ error: true, mensaje: 'Error de validación', detalles });
     }
+
+    if (process.env.SLACK_WEBHOOK_URL) notifySlack(err, req).catch(() => {});
 
     console.error(err);
     res.status(500).json({ error: true, mensaje: 'Error interno del servidor' });
