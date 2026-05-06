@@ -9,7 +9,7 @@
 # ══════════════════════════════════════════════════════
 
 @token     = PEGA_EL_TOKEN_AQUI
-@clientId  = PEGA_EL_ID_DEL_CLIENTE
+@clientId  = bbb000000000000000000001
 @projectId = ccc000000000000000000001
 @noteId    = ddd000000000000000000001
 
