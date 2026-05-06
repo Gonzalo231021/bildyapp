@@ -1,6 +1,7 @@
 import 'express-async-errors';
 import morganBody from 'morgan-body';
 import express from 'express';
+import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
@@ -53,8 +54,12 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/api', router);
 
-app.get('/pruebaDB', (req, res) => {
-    res.json({ status: 'ok', mensaje: 'BildiApp y base de datos funcionando' });
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        uptime: process.uptime(),
+    });
 });
 
 app.use(errorHandler);
