@@ -34,9 +34,10 @@ app.use((req, res, next) => {
         return JSON.stringify(obj).includes('$');
     };
     if (check(req.body) || check(req.params) || check(req.query)) {
-        return res.status(400).json({ error: true, mensaje: 'Caracteres no permitidos' });
+        res.status(400).json({ error: true, mensaje: 'Caracteres no permitidos' });
+    } else {
+        next();
     }
-    next();
 });
 
 
@@ -58,6 +59,7 @@ app.get('/health', (req, res) => {
         status: 'ok',
         db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
         uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
     });
 });
 

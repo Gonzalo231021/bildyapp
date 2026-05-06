@@ -1,38 +1,56 @@
 @baseUrl = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.tu_token_aqui
 
-### Registrar usuario
+# ─────────────────────────────────────────
+# PASO 1: Registrar usuario
+# Después: copia el "token" de la respuesta y ponlo en @token aquí abajo
+# También abre Mailtrap (sandbox.smtp.mailtrap.io → My Sandbox) y busca el email con el código
+# ─────────────────────────────────────────
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWZiOWZmOTBmOTM4MTdjMmJkZDJiYjQiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzgwOTgzMjYsImV4cCI6MTc3ODA5OTIyNn0.1bM2L3j8dL3suXh5ZpOAymo87K4eOzIs009HemEE3ms
+
+### 1. Registrar usuario
 POST {{baseUrl}}/api/user/register
 Content-Type: application/json
 
 {
-  "email": "gonzalo@ejemplo.com",
+  "email": "demo@bildyapp.com",
   "password": "Password1"
 }
 
-### Validar email
-PUT {{baseUrl}}/api/user/validate
+# ─────────────────────────────────────────
+# PASO 2: Validar email
+# Abre Mailtrap → My Sandbox → verás el email con el código de 6 dígitos
+# Pon el código abajo y ejecuta
+# ─────────────────────────────────────────
+
+### 2. Validar email (código llega a Mailtrap)
+PUT {{baseUrl}}/api/user/validation
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "code": "123456"
+  "code": "406390"
 }
 
-### Login
+# ─────────────────────────────────────────
+# PASO 3: Login
+# Después: copia el "token" de la respuesta y actualiza @token arriba
+# (el del registro caduca en 15 min, este será el token definitivo)
+# ─────────────────────────────────────────
+
+### 3. Login
 POST {{baseUrl}}/api/user/login
 Content-Type: application/json
 
 {
-  "email": "gonzalo@ejemplo.com",
+  "email": "demo@bildyapp.com",
   "password": "Password1"
 }
 
-### Obtener usuario autenticado
-GET {{baseUrl}}/api/user
-Authorization: Bearer {{token}}
+# ─────────────────────────────────────────
+# PASO 4: Datos personales (necesario antes de crear empresa)
+# ─────────────────────────────────────────
 
-### Actualizar datos personales
+### 4. Actualizar datos personales
 PUT {{baseUrl}}/api/user/register
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -43,29 +61,41 @@ Authorization: Bearer {{token}}
   "nif": "12345678A"
 }
 
-### Configurar empresa
+# ─────────────────────────────────────────
+# PASO 5: Crear empresa
+# OJO: address es un objeto, no un string
+# Después: haz Login de nuevo y actualiza @token (el token ahora incluye la empresa)
+# ─────────────────────────────────────────
+
+### 5. Configurar empresa
 PATCH {{baseUrl}}/api/user/company
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
   "isFreelance": false,
-  "name": "Mi Empresa SL",
+  "name": "BildyCorp SL",
   "cif": "B12345678",
-  "address": "Calle Mayor 1, Madrid"
+  "address": {
+    "street": "Calle Mayor 1",
+    "city": "Madrid",
+    "postal": "28001"
+  }
 }
 
-### Refresh token
-POST {{baseUrl}}/api/user/refresh
+### 6. Login de nuevo (para obtener token con empresa ya asignada)
+# Después: copia el token y actualiza @token arriba — este es el token definitivo
+POST {{baseUrl}}/api/user/login
 Content-Type: application/json
 
 {
-  "refreshToken": "tu_refresh_token_aqui"
+  "email": "demo@bildyapp.com",
+  "password": "Password1"
 }
 
-### Logout
-POST {{baseUrl}}/api/user/logout
+### 7. Ver perfil completo (para confirmar que todo está bien)
+GET {{baseUrl}}/api/user
 Authorization: Bearer {{token}}
 
-### Health check
+### 8. Health check (sin token)
 GET {{baseUrl}}/health

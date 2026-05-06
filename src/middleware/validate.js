@@ -1,26 +1,27 @@
-import { ZodError } from "zod";
+import { ZodError } from 'zod';
 
 const validate = (schema) => (req, res, next) => {
     try {
         schema.parse({
             body: req.body,
             query: req.query,
-            params: req.params
+            params: req.params,
         });
         next();
     } catch (error) {
-        if( error instanceof ZodError) {
-            return res.status(400).json({
-                error: true, 
+        if (error instanceof ZodError) {
+            res.status(400).json({
+                error: true,
                 mensaje: 'Error de validación',
                 detalles: error.issues.map((err) => ({
                     campo: err.path.join('.'),
-                    mensaje: err.message
-                }))
+                    mensaje: err.message,
+                })),
             });
+        } else {
+            next(error);
         }
-        next(error);
-     }
+    }
 };
 
 export default validate;

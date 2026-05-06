@@ -1,59 +1,66 @@
 @baseUrl = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.tu_token_aqui
-@clientId = 664a1b2c3d4e5f6789012345
 
-### Crear cliente
+# ─────────────────────────────────────────
+# ANTES DE EMPEZAR: necesitas un token válido con empresa asignada
+# Cópialo del último Login de auth.http y ponlo aquí
+# ─────────────────────────────────────────
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2OWZiOWZmOTBmOTM4MTdjMmJkZDJiYjQiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzgwOTgzMjYsImV4cCI6MTc3ODA5OTIyNn0.1bM2L3j8dL3suXh5ZpOAymo87K4eOzIs009HemEE3ms
+
+# Después de crear el cliente, copia su "_id" de la respuesta y ponlo aquí
+@clientId = 69fba1430f93817c2bdd2bca
+
+# ─────────────────────────────────────────
+# PASO 1: Crear cliente
+# Después: copia el "_id" del cliente y ponlo en @clientId arriba
+# ─────────────────────────────────────────
+
+### 1. Crear cliente
 POST {{baseUrl}}/api/client
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "name": "Empresa Cliente SA",
+  "name": "Construcciones López SL",
   "cif": "A87654321",
-  "email": "cliente@empresa.com",
+  "email": "lopez@construcciones.com",
   "address": {
-    "street": "Calle Ejemplo 10",
+    "street": "Calle Industria 10",
     "city": "Madrid",
-    "province": "Madrid",
-    "postalCode": "28001",
-    "country": "España"
+    "postal": "28001"
   }
 }
 
-### Listar clientes
+### 2. Listar clientes
 GET {{baseUrl}}/api/client
 Authorization: Bearer {{token}}
 
-### Listar clientes con búsqueda y paginación
-GET {{baseUrl}}/api/client?search=empresa&page=1&limit=10
+### 3. Buscar clientes por nombre
+GET {{baseUrl}}/api/client?search=lopez
 Authorization: Bearer {{token}}
 
-### Obtener cliente por ID
+### 4. Obtener cliente por ID
 GET {{baseUrl}}/api/client/{{clientId}}
 Authorization: Bearer {{token}}
 
-### Actualizar cliente
+### 5. Actualizar cliente
 PUT {{baseUrl}}/api/client/{{clientId}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "name": "Empresa Cliente Actualizada SA",
-  "email": "nuevo@empresa.com"
+  "name": "Construcciones López SL (actualizado)",
+  "cif": "A87654321",
+  "email": "nuevo@construcciones.com"
 }
 
-### Archivar cliente (soft delete)
+### 6. Archivar cliente (soft delete — se puede restaurar)
 DELETE {{baseUrl}}/api/client/{{clientId}}?soft=true
 Authorization: Bearer {{token}}
 
-### Eliminar cliente (hard delete)
-DELETE {{baseUrl}}/api/client/{{clientId}}
-Authorization: Bearer {{token}}
-
-### Listar clientes archivados
+### 7. Ver clientes archivados
 GET {{baseUrl}}/api/client/archived
 Authorization: Bearer {{token}}
 
-### Restaurar cliente
+### 8. Restaurar cliente archivado
 PATCH {{baseUrl}}/api/client/{{clientId}}/restore
 Authorization: Bearer {{token}}

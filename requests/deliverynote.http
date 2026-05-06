@@ -1,10 +1,22 @@
 @baseUrl = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.tu_token_aqui
-@noteId = 664a1b2c3d4e5f6789012347
-@clientId = 664a1b2c3d4e5f6789012345
-@projectId = 664a1b2c3d4e5f6789012346
 
-### Crear albarán de horas
+# ─────────────────────────────────────────
+# ANTES DE EMPEZAR: necesitas token, clientId y projectId de los pasos anteriores
+# ─────────────────────────────────────────
+@token = PON_AQUI_EL_TOKEN_CON_EMPRESA
+@clientId = PON_AQUI_EL_ID_DEL_CLIENTE
+@projectId = PON_AQUI_EL_ID_DEL_PROYECTO
+
+# Después de crear el albarán, copia su "_id" aquí
+@noteId = PON_AQUI_EL_ID_DEL_ALBARAN
+
+# ─────────────────────────────────────────
+# PASO 1: Crear albarán de horas
+# workers es array de objetos {name, hours}
+# Después: copia el "_id" y ponlo en @noteId arriba
+# ─────────────────────────────────────────
+
+### 1. Crear albarán de HORAS
 POST {{baseUrl}}/api/deliverynote
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -14,12 +26,15 @@ Authorization: Bearer {{token}}
   "project": "{{projectId}}",
   "format": "hours",
   "hours": 8,
-  "description": "Instalación eléctrica planta 2",
-  "workdate": "2026-05-06",
-  "workers": ["Juan García", "Pedro López"]
+  "description": "Instalación eléctrica planta baja",
+  "workdate": "2026-05-07",
+  "workers": [
+    { "name": "Juan García", "hours": 4 },
+    { "name": "Pedro López", "hours": 4 }
+  ]
 }
 
-### Crear albarán de material
+### 2. Crear albarán de MATERIAL
 POST {{baseUrl}}/api/deliverynote
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -28,33 +43,39 @@ Authorization: Bearer {{token}}
   "client": "{{clientId}}",
   "project": "{{projectId}}",
   "format": "material",
-  "material": "Cables eléctricos 100m",
+  "material": "Cable eléctrico 100m + canaletas",
   "description": "Material para instalación",
-  "workdate": "2026-05-06"
+  "workdate": "2026-05-07"
 }
 
-### Listar albaranes
+### 3. Listar albaranes
 GET {{baseUrl}}/api/deliverynote
 Authorization: Bearer {{token}}
 
-### Listar albaranes con filtros
-GET {{baseUrl}}/api/deliverynote?client={{clientId}}&format=hours
+### 4. Filtrar por cliente
+GET {{baseUrl}}/api/deliverynote?client={{clientId}}
 Authorization: Bearer {{token}}
 
-### Obtener albarán por ID
+### 5. Obtener albarán por ID (con datos de cliente y proyecto)
 GET {{baseUrl}}/api/deliverynote/{{noteId}}
 Authorization: Bearer {{token}}
 
-### Firmar albarán (multipart — usar con fichero de imagen)
-# En VS Code REST Client no se puede enviar multipart directamente,
-# usar Postman o curl: curl -X PATCH url -H "Authorization: Bearer token" -F "image=@firma.png"
-PATCH {{baseUrl}}/api/deliverynote/{{noteId}}/sign
-Authorization: Bearer {{token}}
+# ─────────────────────────────────────────
+# PASO 6: Firmar albarán
+# OJO: esto NO funciona desde REST Client porque necesita multipart/form-data con imagen
+# Usar Postman o Thunder Client:
+#   - Method: PATCH
+#   - URL: {{baseUrl}}/api/deliverynote/{{noteId}}/sign
+#   - Header: Authorization: Bearer {{token}}
+#   - Body: form-data → campo "image" → seleccionar un archivo PNG/JPG
+# La firma se sube a Cloudinary automáticamente
+# ─────────────────────────────────────────
 
-### Descargar PDF del albarán
+### 7. Descargar PDF del albarán (genera el PDF con todos los datos)
+# Si está firmado, el PDF incluye la imagen de la firma desde Cloudinary
 GET {{baseUrl}}/api/deliverynote/{{noteId}}/pdf
 Authorization: Bearer {{token}}
 
-### Eliminar albarán (solo si no está firmado)
+### 8. Eliminar albarán (solo funciona si NO está firmado)
 DELETE {{baseUrl}}/api/deliverynote/{{noteId}}
 Authorization: Bearer {{token}}
